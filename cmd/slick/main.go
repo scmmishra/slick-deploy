@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -22,8 +23,24 @@ var deployCmd = &cobra.Command{
 	Long: `The deploy command starts a new deployment process
 ensuring that your application is updated with no service interruption.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Deploying your application...")
-		// deployment logic here
+		cfgPath, _ := cmd.Flags().GetString("config")
+		// if cfgPath is not preset, use the slick.yml in the current directory
+		if cfgPath == "" {
+			cfgPath = "slick.yml"
+		}
+
+		// Load configuration
+		cfg, err := config.LoadConfig(cfgPath)
+		if err != nil {
+			cmd.PrintErr(err)
+			os.Exit(1)
+		}
+
+		// print the cfg for debugging
+		fmt.Printf("%+v\n", cfg.Deployment)
+		fmt.Printf("%+v\n", cfg.Caddy)
+		fmt.Printf("%+v\n", cfg.HealthCheck)
+		fmt.Printf("%+v\n", cfg.Network)
 	},
 }
 
@@ -37,6 +54,8 @@ func Execute() {
 }
 
 func init() {
+	var cfgFile string
+	deployCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Path to the configuration file")
 	rootCmd.AddCommand(deployCmd)
 }
 
