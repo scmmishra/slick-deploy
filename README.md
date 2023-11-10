@@ -47,7 +47,7 @@ To check the status of your deployment:
 slick status
 ```
 
-See slick --help for more information on commands and flags.
+See `slick --help` for more information on commands and flags.
 
 ### Configuration
 
