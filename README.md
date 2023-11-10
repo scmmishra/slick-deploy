@@ -26,7 +26,7 @@ Before you begin, ensure you have the following installed:
 To start using Slick Deploy, install it right from the source:
 
 ```bash
-git clone https://github.com/yourusername/slick-deploy.git
+git clone https://github.com/scmmishra/slick-deploy.git
 cd slick-deploy
 go build -o slick ./cmd/slick
 ```
