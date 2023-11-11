@@ -10,8 +10,13 @@ import (
 
 type DeploymentConfig struct {
 	Deployment struct {
-		ImageName         string `yaml:"image_name"`
-		ContainerBaseName string `yaml:"container_base_name"`
+		ImageName     string `yaml:"image_name"`
+		ContainerPort int    `yaml:"container_port"`
+		PortIncrement int    `yaml:"port_increment"`
+		PortRange     struct {
+			Start int `yaml:"start"`
+			End   int `yaml:"end"`
+		} `yaml:"port_range"`
 	} `yaml:"deployment"`
 	Caddy struct {
 		AdminAPI     string `yaml:"admin_api"`
@@ -25,10 +30,6 @@ type DeploymentConfig struct {
 		Endpoint       string `yaml:"endpoint"`
 		TimeoutSeconds int    `yaml:"timeout_seconds"`
 	} `yaml:"health_check"`
-	Network struct {
-		StartPort     int `yaml:"start_port"`
-		PortIncrement int `yaml:"port_increment"`
-	} `yaml:"network"`
 }
 
 func LoadConfig(path string) (DeploymentConfig, error) {
@@ -51,6 +52,18 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	err = yaml.Unmarshal(yamlData, &config)
 	if err != nil {
 		return config, err
+	}
+
+	if config.Deployment.PortIncrement == 0 {
+		config.Deployment.PortIncrement = 1
+	}
+
+	if config.Deployment.PortRange.Start == 0 {
+		config.Deployment.PortRange.Start = 8000
+	}
+
+	if config.Deployment.PortRange.End == 0 {
+		config.Deployment.PortRange.End = 9999
 	}
 
 	return config, nil

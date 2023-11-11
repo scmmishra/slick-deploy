@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/scmmishra/slick-deploy/internal/config"
+	"github.com/scmmishra/slick-deploy/internal/deploy"
 	"github.com/spf13/cobra"
+	"log"
+	"os"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -35,11 +36,10 @@ ensuring that your application is updated with no service interruption.`,
 			os.Exit(1)
 		}
 
-		// print the cfg for debugging
-		fmt.Printf("%+v\n", cfg.Deployment)
-		fmt.Printf("%+v\n", cfg.Caddy)
-		fmt.Printf("%+v\n", cfg.HealthCheck)
-		fmt.Printf("%+v\n", cfg.Network)
+		err = deploy.Deploy(cfg)
+		if err != nil {
+			log.Fatalf("Failed to pull image: %v", err)
+		}
 	},
 }
 
