@@ -16,11 +16,12 @@ func Deploy(cfg config.DeploymentConfig) error {
 		return err
 	}
 
-	_, err = docker.RunContainer(cfg.Deployment.ImageName, cfg)
+	_, _, err = docker.RunContainer(cfg.Deployment.ImageName, cfg)
 	if err != nil {
 		fmt.Println("Failed to run container")
 		return err
 	}
 
+	fmt.Println("Deployed successfully")
 	return nil
 }

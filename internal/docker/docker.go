@@ -82,12 +82,12 @@ func PullImage(imageName string) error {
 	return nil
 }
 
-func RunContainer(imageName string, cfg config.DeploymentConfig) (string, error) {
+func RunContainer(imageName string, cfg config.DeploymentConfig) (string, int, error) {
 	ctx := context.Background()
 
 	cli, err := NewDockerClient()
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	containerId, err := FindContainer(cli, imageName)
@@ -96,7 +96,7 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, error)
 	port, err := portManager.AllocatePort()
 
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	containerConfig := &container.Config{
@@ -120,12 +120,12 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, error)
 	fmt.Printf("Starting new container on port %d\n", port)
 	resp, err := cli.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, "")
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	// assume health check worked
@@ -136,7 +136,7 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, error)
 		StopContainer(containerId)
 	}
 
-	return resp.ID, nil
+	return resp.ID, port, nil
 }
 
 func FindContainer(cli *client.Client, imageName string) (string, error) {
