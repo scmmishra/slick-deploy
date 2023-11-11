@@ -55,8 +55,11 @@ Create a config.yaml file with your deployment settings. Here's an example confi
 
 ```yaml
 deployment:
-  image_name: "your-app-image"
-  container_base_name: "your-app-container"
+  image_name: "ghcr.io/usememos/memos"
+  container_port: 5230
+  port_range:
+    start: 8000
+    end: 9000
 
 caddy:
   admin_api: "http://localhost:2019"
@@ -66,3 +69,19 @@ health_check:
   endpoint: "/health"
   timeout_seconds: 5
 ```
+
+### Development
+
+To run the build with air use the following command
+
+```bash
+air --build.cmd "go build -o bin/slick cmd/slick/main.go" --build.bin ""
+```
+
+Add an alias to your .bashrc or .zshrc file to make it easier to run the slick command
+
+```bash
+alias slickdev="~/scmmishra/slick-deploy/bin/slick"
+```
+
+> Note, we use `slickdev` instead of `slick` to avoid conflicts with the global slick binary.
