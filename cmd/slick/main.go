@@ -6,10 +6,11 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
 
-	"github.com/scmmishra/slick-deploy/internal/deploy"
-	"github.com/spf13/cobra"
 	"log"
 	"os"
+
+	"github.com/scmmishra/slick-deploy/internal/deploy"
+	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
