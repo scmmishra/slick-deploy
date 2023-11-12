@@ -39,13 +39,12 @@ ensuring that your application is updated with no service interruption.`,
 			os.Exit(1)
 		}
 
-		err = deploy.Deploy(cfg)
+		port, err := deploy.Deploy(cfg)
 		if err != nil {
 			log.Fatalf("Failed to pull image: %v", err)
 		}
 
-		fmt.Println(caddy.SetupCaddy(8000, cfg))
-
+		caddy.SetupCaddy(port, cfg)
 	},
 }
 

@@ -7,7 +7,7 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/docker"
 )
 
-func Deploy(cfg config.DeploymentConfig) error {
+func Deploy(cfg config.DeploymentConfig) (int, error) {
 	fmt.Println("Deploying...")
 
 	err := docker.PullImage(cfg.Deployment.ImageName)
@@ -16,12 +16,12 @@ func Deploy(cfg config.DeploymentConfig) error {
 		return err
 	}
 
-	_, _, err = docker.RunContainer(cfg.Deployment.ImageName, cfg)
+	_, port, err = docker.RunContainer(cfg.Deployment.ImageName, cfg)
 	if err != nil {
 		fmt.Println("Failed to run container")
 		return err
 	}
 
 	fmt.Println("Deployed successfully")
-	return nil
+	return port
 }
