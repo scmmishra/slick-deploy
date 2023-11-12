@@ -20,9 +20,6 @@
 # Go workspace file
 go.work
 
-/cmd/slick/main
-
-slick
 slick.yml
 bin/*
 
