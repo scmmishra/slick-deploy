@@ -8,6 +8,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type Server struct {
+	Name         string         `json:"name"`
+	ReverseProxy []ReverseProxy `json:"reverse_proxy"`
+}
+
+type ReverseProxy struct {
+	Path string `json:"path"`
+	To   string `json:"to"`
+}
+
 type DeploymentConfig struct {
 	Deployment struct {
 		ImageName     string `yaml:"image_name"`
@@ -19,8 +29,8 @@ type DeploymentConfig struct {
 		} `yaml:"port_range"`
 	} `yaml:"deployment"`
 	Caddy struct {
-		AdminAPI     string   `yaml:"admin_api"`
-		ReverseProxy []string `yaml:"reverse_proxy"`
+		AdminAPI string   `yaml:"admin_api"`
+		Servers  []Server `json:"servers"`
 	} `yaml:"caddy"`
 	HealthCheck struct {
 		Endpoint       string `yaml:"endpoint"`
