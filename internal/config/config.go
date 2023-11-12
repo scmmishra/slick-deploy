@@ -19,12 +19,8 @@ type DeploymentConfig struct {
 		} `yaml:"port_range"`
 	} `yaml:"deployment"`
 	Caddy struct {
-		AdminAPI     string `yaml:"admin_api"`
-		ReverseProxy struct {
-			ProxyMatcher string   `yaml:"proxy_matcher"`
-			ToPort       int      `yaml:"to_port"`
-			Rewrite      []string `yaml:"rewrite"`
-		} `yaml:"reverse_proxy"`
+		AdminAPI     string   `yaml:"admin_api"`
+		ReverseProxy []string `yaml:"reverse_proxy"`
 	} `yaml:"caddy"`
 	HealthCheck struct {
 		Endpoint       string `yaml:"endpoint"`
@@ -64,6 +60,14 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 
 	if config.Deployment.PortRange.End == 0 {
 		config.Deployment.PortRange.End = 9999
+	}
+
+	if config.Caddy.AdminAPI == "" {
+		config.Caddy.AdminAPI = "http://localhost:2019"
+	}
+
+	if config.HealthCheck.Endpoint == "" {
+		config.HealthCheck.Endpoint = "/"
 	}
 
 	return config, nil

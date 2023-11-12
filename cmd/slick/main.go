@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
+
 	"github.com/scmmishra/slick-deploy/internal/deploy"
 	"github.com/spf13/cobra"
 	"log"
@@ -40,6 +43,9 @@ ensuring that your application is updated with no service interruption.`,
 		if err != nil {
 			log.Fatalf("Failed to pull image: %v", err)
 		}
+
+		fmt.Println(caddy.SetupCaddy(8000, cfg))
+
 	},
 }
 
