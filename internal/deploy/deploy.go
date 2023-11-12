@@ -13,15 +13,15 @@ func Deploy(cfg config.DeploymentConfig) (int, error) {
 	err := docker.PullImage(cfg.Deployment.ImageName)
 	if err != nil {
 		fmt.Println("Failed to pull image")
-		return err
+		return 0, err
 	}
 
-	_, port, err = docker.RunContainer(cfg.Deployment.ImageName, cfg)
+	_, port, err := docker.RunContainer(cfg.Deployment.ImageName, cfg)
 	if err != nil {
 		fmt.Println("Failed to run container")
-		return err
+		return 0, err
 	}
 
 	fmt.Println("Deployed successfully")
-	return port
+	return port, nil
 }
