@@ -58,12 +58,28 @@ deployment:
   image_name: "ghcr.io/usememos/memos"
   container_port: 5230
   port_range:
-    start: 8000
-    end: 9000
+    start: 3000
+    end: 4000
 
 caddy:
   admin_api: "http://localhost:2019"
-  proxy_matcher: "example.com"
+  servers:
+    - name: "*.memos.pages"
+      reverse_proxy:
+        - path: "/"
+          to: ""
+
+    - name: "api.memos.app"
+      reverse_proxy:
+        - path: "/api/*"
+          to: "/api/*"
+
+    - name: "dash.memos.app"
+      reverse_proxy:
+        - path: "/"
+          to: "/dashboard/*"
+        - path: "/preview"
+          to: "/dashboard/preview"
 
 health_check:
   endpoint: "/health"
