@@ -25,14 +25,14 @@ type ReverseProxy struct {
 	To   string `yaml:"to"`
 }
 
-type Server struct {
-	Name         string         `yaml:"name"`
+type Rule struct {
+	Match        string         `yaml:"match"`
 	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
 }
 
 type CaddyConfig struct {
-	AdminAPI string   `yaml:"admin_api"`
-	Servers  []Server `yaml:"servers"`
+	AdminAPI string `yaml:"admin_api"`
+	Rules    []Rule `yaml:"rules"`
 }
 
 type HealthCheck struct {
