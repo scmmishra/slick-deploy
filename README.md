@@ -93,7 +93,7 @@ air --build.cmd "go build -o bin/slick cmd/slick/main.go" --build.bin ""
 Add an alias to your .bashrc or .zshrc file to make it easier to run the slick command
 
 ```bash
-alias slickdev="~/scmmishra/slick-deploy/bin/slick"
+alias slickdev="<path-to-project>/bin/slick"
 ```
 
 > Note, we use `slickdev` instead of `slick` to avoid conflicts with the global slick binary.
