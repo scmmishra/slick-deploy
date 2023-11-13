@@ -16,7 +16,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "slick",
 	Short: "Slick is a CLI tool for zero-downtime deployment using Docker and Caddy",
-	Long:  `Slick is designed to simplify your deployment process ensuring zero downtime and easy configuration management.`,
+	Long:  "Slick is designed to simplify your deployment process ensuring zero downtime\nand easy configuration management.",
 }
 
 // deployCmd represents the deploy command
