@@ -42,7 +42,7 @@ func PullImage(imageName string) error {
 	ctx := context.Background()
 
 	// Initialize a new Docker client. It automatically negotiates the API version
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := NewDockerClient()
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, int, e
 		return "", 0, err
 	}
 
-	containerId, err := FindContainer(cli, imageName)
+	containerId, _ := FindContainer(cli, imageName)
 
 	portManager := utils.NewPortManager(cfg.Deployment.PortRange.Start, cfg.Deployment.PortRange.End, cfg.Deployment.PortIncrement)
 	port, err := portManager.AllocatePort()
@@ -125,7 +125,7 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, int, e
 
 	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("error allocating port: %w", err)
 	}
 
 	// assume health check worked
@@ -168,10 +168,11 @@ func FindContainer(cli *client.Client, imageName string) (string, error) {
 
 func StopContainer(containerID string) error {
 	ctx := context.Background()
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := NewDockerClient()
 	if err != nil {
 		return err
 	}
+
 	defer cli.Close()
 
 	timeout := 15
