@@ -7,6 +7,7 @@ type CaddyConfig struct {
 }
 
 // AppConfig represents the top-level app configuration.
+// AppsConfig holds the apps configurations.
 type AppConfig struct {
 	HTTP HTTPConfig `json:"http"`
 }
@@ -31,8 +32,9 @@ type RouteConfig struct {
 
 // HandlerConfig defines a handler in the route.
 type HandlerConfig struct {
-	Handler string        `json:"handler"`
-	Routes  []RouteConfig `json:"routes,omitempty"`
+	Handler   string           `json:"handler"`
+	Routes    []RouteConfig    `json:"routes,omitempty"`
+	Upstreams []UpstreamConfig `json:"upstreams,omitempty"`
 }
 
 // MatchConfig represents the match conditions for a route.
@@ -44,18 +46,6 @@ type MatchConfig struct {
 // UpstreamConfig represents the configuration for an upstream server.
 type UpstreamConfig struct {
 	Dial string `json:"dial"`
-}
-
-// ReverseProxyConfig defines the reverse proxy handler configuration.
-type ReverseProxyConfig struct {
-	Handler   string           `json:"handler"`
-	Upstreams []UpstreamConfig `json:"upstreams"`
-}
-
-// SubrouteConfig defines a subroute in the configuration.
-type SubrouteConfig struct {
-	Handler string        `json:"handler"`
-	Routes  []RouteConfig `json:"routes"`
 }
 
 type CaddyClient struct {
@@ -70,12 +60,12 @@ func NewCaddyClient(baseURL string) *CaddyClient {
 	}
 }
 
-func DefaultConfig() CaddyConfig {
-	return CaddyConfig{
-		Apps: AppConfig{
-			HTTP: HTTPConfig{
-				Servers: map[string]ServerConfig{},
-			},
-		},
-	}
-}
+// func DefaultConfig() CaddyConfig {
+// 	return CaddyConfig{
+// 		Apps: AppConfig{
+// 			HTTP: HTTPConfig{
+// 				Servers: {},
+// 			},
+// 		},
+// 	}
+// }
