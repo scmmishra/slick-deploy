@@ -5,7 +5,6 @@ import (
 
 	"os"
 
-	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
 	"github.com/spf13/cobra"
@@ -38,15 +37,9 @@ ensuring that your application is updated with no service interruption.`,
 			os.Exit(1)
 		}
 
-		port, err := deploy.Deploy(cfg)
+		err = deploy.Deploy(cfg)
 		if err != nil {
 			cmd.PrintErrf("Failed to pull image: %v", err)
-			os.Exit(1)
-		}
-
-		err = caddy.SetupCaddy(port, cfg)
-		if err != nil {
-			cmd.PrintErrf("Failed to setup Caddy: %v", err)
 			os.Exit(1)
 		}
 	},

@@ -82,21 +82,24 @@ func PullImage(imageName string) error {
 	return nil
 }
 
-func RunContainer(imageName string, cfg config.DeploymentConfig) (string, int, error) {
+type Container struct {
+	ID   string
+	Port int
+}
+
+func RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, error) {
 	ctx := context.Background()
 
 	cli, err := NewDockerClient()
 	if err != nil {
-		return "", 0, err
+		return nil, err
 	}
-
-	containerId, _ := FindContainer(cli, imageName)
 
 	portManager := utils.NewPortManager(cfg.App.PortRange.Start, cfg.App.PortRange.End, 1)
 	port, err := portManager.AllocatePort()
 
 	if err != nil {
-		return "", 0, err
+		return nil, err
 	}
 
 	containerConfig := &container.Config{
@@ -117,34 +120,34 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, int, e
 		},
 	}
 
-	fmt.Printf("Starting new container on port %d\n", port)
 	resp, err := cli.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, "")
 	if err != nil {
-		return "", 0, err
+		return nil, err
 	}
 
 	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
-		return "", 0, fmt.Errorf("error allocating port: %w", err)
+		return nil, fmt.Errorf("error allocating port: %w", err)
 	}
 
-	// assume health check worked
-	fmt.Println("Container started")
-
-	if containerId != "" {
-		fmt.Printf("Stopping existing container with ID: %s\n", containerId)
-		StopContainer(containerId)
-	}
-
-	return resp.ID, port, nil
+	return &Container{
+		ID:   resp.ID,
+		Port: port,
+	}, nil
 }
 
-func FindContainer(cli *client.Client, imageName string) (string, error) {
+func FindContainer(imageName string) *Container {
 	ctx := context.Background()
+
+	cli, err := NewDockerClient()
+
+	if err != nil {
+		return nil
+	}
 
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
-		return "", err
+		return nil
 	}
 
 	baseImageName := strings.Split(imageName, ":")[0]
@@ -159,11 +162,13 @@ func FindContainer(cli *client.Client, imageName string) (string, error) {
 		containerBaseImageName := strings.Split(cont.Config.Image, ":")[0]
 		// Check if the container's image matches the specified image name
 		if containerBaseImageName == baseImageName {
-			return container.ID, nil
+			return &Container{
+				ID: container.ID,
+			}
 		}
 	}
 
-	return "", nil
+	return nil
 }
 
 func StopContainer(containerID string) error {
