@@ -8,34 +8,42 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Server struct {
-	Name         string         `json:"name"`
-	ReverseProxy []ReverseProxy `json:"reverse_proxy"`
+type PortRange struct {
+	Start int `yaml:"start"`
+	End   int `yaml:"end"`
+}
+
+type App struct {
+	Name          string    `yaml:"name"`
+	ImageName     string    `yaml:"image_name"`
+	ContainerPort int       `yaml:"container_port"`
+	PortRange     PortRange `yaml:"port_range"`
 }
 
 type ReverseProxy struct {
-	Path string `json:"path"`
-	To   string `json:"to"`
+	Path string `yaml:"path"`
+	To   string `yaml:"to"`
+}
+
+type Server struct {
+	Name         string         `yaml:"name"`
+	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
+}
+
+type CaddyConfig struct {
+	AdminAPI string   `yaml:"admin_api"`
+	Servers  []Server `yaml:"servers"`
+}
+
+type HealthCheck struct {
+	Endpoint       string `yaml:"endpoint"`
+	TimeoutSeconds int    `yaml:"timeout_seconds"`
 }
 
 type DeploymentConfig struct {
-	Deployment struct {
-		ImageName     string `yaml:"image_name"`
-		ContainerPort int    `yaml:"container_port"`
-		PortIncrement int    `yaml:"port_increment"`
-		PortRange     struct {
-			Start int `yaml:"start"`
-			End   int `yaml:"end"`
-		} `yaml:"port_range"`
-	} `yaml:"deployment"`
-	Caddy struct {
-		AdminAPI string   `yaml:"admin_api"`
-		Servers  []Server `json:"servers"`
-	} `yaml:"caddy"`
-	HealthCheck struct {
-		Endpoint       string `yaml:"endpoint"`
-		TimeoutSeconds int    `yaml:"timeout_seconds"`
-	} `yaml:"health_check"`
+	App         App         `yaml:"app"`
+	Caddy       CaddyConfig `yaml:"caddy"`
+	HealthCheck HealthCheck `yaml:"health_check"`
 }
 
 func LoadConfig(path string) (DeploymentConfig, error) {
@@ -60,24 +68,16 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 		return config, err
 	}
 
-	if config.Deployment.PortIncrement == 0 {
-		config.Deployment.PortIncrement = 1
+	if config.App.PortRange.Start == 0 {
+		config.App.PortRange.Start = 8000
 	}
 
-	if config.Deployment.PortRange.Start == 0 {
-		config.Deployment.PortRange.Start = 8000
-	}
-
-	if config.Deployment.PortRange.End == 0 {
-		config.Deployment.PortRange.End = 9999
+	if config.App.PortRange.End == 0 {
+		config.App.PortRange.End = 9000
 	}
 
 	if config.Caddy.AdminAPI == "" {
 		config.Caddy.AdminAPI = "http://localhost:2019"
-	}
-
-	if config.HealthCheck.Endpoint == "" {
-		config.HealthCheck.Endpoint = "/"
 	}
 
 	return config, nil

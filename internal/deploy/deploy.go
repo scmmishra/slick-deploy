@@ -10,13 +10,13 @@ import (
 func Deploy(cfg config.DeploymentConfig) (int, error) {
 	fmt.Println("Deploying...")
 
-	err := docker.PullImage(cfg.Deployment.ImageName)
+	err := docker.PullImage(cfg.App.ImageName)
 	if err != nil {
 		fmt.Println("Failed to pull image")
 		return 0, err
 	}
 
-	_, port, err := docker.RunContainer(cfg.Deployment.ImageName, cfg)
+	_, port, err := docker.RunContainer(cfg.App.ImageName, cfg)
 	if err != nil {
 		fmt.Println("Failed to run container")
 		return 0, err

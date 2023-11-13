@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
+
+	"os"
 
 	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
-
-	"log"
-	"os"
-
 	"github.com/scmmishra/slick-deploy/internal/deploy"
 	"github.com/spf13/cobra"
 )

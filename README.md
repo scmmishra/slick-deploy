@@ -54,32 +54,28 @@ See `slick --help` for more information on commands and flags.
 Create a config.yaml file with your deployment settings. Here's an example configuration:
 
 ```yaml
-deployment:
+app:
+  name: "memos"
   image_name: "ghcr.io/usememos/memos"
   container_port: 5230
   port_range:
-    start: 3000
-    end: 4000
+    start: 8000
+    end: 9000
 
 caddy:
   admin_api: "http://localhost:2019"
   servers:
-    - name: "*.memos.pages"
+    - match: "*.pages.dev"
       reverse_proxy:
         - path: "/"
-          to: ""
+          to: "http://localhost:{memos.port}"
 
-    - name: "api.memos.app"
+    - match: "bookmarks.shivam.dev"
       reverse_proxy:
+        - path: "/"
+          to: "http://localhost:{port}"
         - path: "/api/*"
-          to: "/api/*"
-
-    - name: "dash.memos.app"
-      reverse_proxy:
-        - path: "/"
-          to: "/dashboard/*"
-        - path: "/preview"
-          to: "/dashboard/preview"
+          to: "http://localhost:{port}/internal/api/*"
 
 health_check:
   endpoint: "/health"

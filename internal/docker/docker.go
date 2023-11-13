@@ -92,7 +92,7 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, int, e
 
 	containerId, _ := FindContainer(cli, imageName)
 
-	portManager := utils.NewPortManager(cfg.Deployment.PortRange.Start, cfg.Deployment.PortRange.End, cfg.Deployment.PortIncrement)
+	portManager := utils.NewPortManager(cfg.App.PortRange.Start, cfg.App.PortRange.End, 1)
 	port, err := portManager.AllocatePort()
 
 	if err != nil {
@@ -102,13 +102,13 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (string, int, e
 	containerConfig := &container.Config{
 		Image: imageName,
 		ExposedPorts: nat.PortSet{
-			nat.Port(fmt.Sprintf("%d/tcp", cfg.Deployment.ContainerPort)): struct{}{},
+			nat.Port(fmt.Sprintf("%d/tcp", cfg.App.ContainerPort)): struct{}{},
 		},
 	}
 
 	hostConfig := &container.HostConfig{
 		PortBindings: nat.PortMap{
-			nat.Port(fmt.Sprintf("%d/tcp", cfg.Deployment.ContainerPort)): []nat.PortBinding{
+			nat.Port(fmt.Sprintf("%d/tcp", cfg.App.ContainerPort)): []nat.PortBinding{
 				{
 					HostIP:   "127.0.0.1",
 					HostPort: fmt.Sprintf("%d", port),
