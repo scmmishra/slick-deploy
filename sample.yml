@@ -1,0 +1,26 @@
+app:
+  name: "memos"
+  image_name: "ghcr.io/usememos/memos"
+  container_port: 5230
+  port_range:
+    start: 8000
+    end: 9000
+
+caddy:
+  admin_api: "http://localhost:2019"
+  servers:
+    - match: "*.pages.dev"
+      reverse_proxy:
+        - path: "/"
+          to: "http://localhost:{memos.port}"
+
+    - match: "bookmarks.shivam.dev"
+      reverse_proxy:
+        - path: "/"
+          to: "http://localhost:{port}"
+        - path: "/api/*"
+          to: "http://localhost:{port}/internal/api/*"
+
+health_check:
+  endpoint: "/health"
+  timeout_seconds: 5
