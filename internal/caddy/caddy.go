@@ -10,35 +10,43 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/config"
 )
 
-type Config struct {
-	// Add fields here according to the Caddy config you want to set up.
-	// This is a basic example.
-	Apps map[string]interface{} `json:"apps"`
+type CaddyConfig struct {
+	Apps Apps `json:"apps"`
 }
 
-// DefaultConfig returns a basic Caddy configuration.
-func DefaultConfig() Config {
-	return Config{
-		Apps: map[string]interface{}{
-			"http": map[string]interface{}{
-				"servers": map[string]interface{}{
-					"srv0": map[string]interface{}{
-						"listen": []string{":80"},
-						"routes": []map[string]interface{}{
-							{
-								"handle": []map[string]interface{}{
-									{
-										"handler": "static_response",
-										"body":    "Hello, world!",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+type Apps struct {
+	HTTP HTTP `json:"http"`
+}
+
+type HTTP struct {
+	Servers map[string]Server `json:"servers"`
+}
+
+type Server struct {
+	Listen   []string `json:"listen"`
+	Routes   []Route  `json:"routes"`
+	Terminal bool     `json:"terminal"`
+}
+
+type Route struct {
+	Handle   []Handle `json:"handle"`
+	Match    []Match  `json:"match"`
+	Terminal bool     `json:"terminal"`
+}
+
+type Handle struct {
+	Handler   string     `json:"handler"`
+	Routes    []Route    `json:"routes,omitempty"`
+	Upstreams []Upstream `json:"upstreams,omitempty"` // Adding this line
+}
+
+type Match struct {
+	Host []string `json:"host,omitempty"`
+	Path []string `json:"path,omitempty"`
+}
+
+type Upstream struct {
+	Dial string `json:"dial"`
 }
 
 type CaddyClient struct {
@@ -53,25 +61,46 @@ func NewCaddyClient(baseURL string) *CaddyClient {
 	}
 }
 
-func (c *CaddyClient) GetCurrentConfig() (string, error) {
+func DefaultConfig() CaddyConfig {
+	return CaddyConfig{
+		Apps: Apps{
+			HTTP: HTTP{
+				Servers: map[string]Server{
+					"slick-server": {},
+				},
+			},
+		},
+	}
+}
+
+func (c *CaddyConfig) AddReverseProxy() {
+}
+
+func (c *CaddyClient) GetCurrentConfig() (*CaddyConfig, error) {
 	resp, err := c.HTTPClient.Get(c.BaseURL + "/config/")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	bodyStr := string(body)
 
 	if bodyStr == "null\n" {
-		return "", nil
+		return nil, nil
 	}
 
-	return bodyStr, nil
+	var config CaddyConfig
+	err = json.Unmarshal(body, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config, nil
 }
 
 func (c *CaddyClient) BootStrapCaddy() error {
@@ -110,13 +139,21 @@ func SetupCaddy(port int, cfg config.DeploymentConfig) error {
 		return err
 	}
 
-	if caddyConfig == "" {
+	if caddyConfig == nil {
 		fmt.Println("Empty Caddy config, bootstrapping...")
 		err = client.BootStrapCaddy()
 		if err != nil {
 			return err
 		}
+
+		// fetch the config again
+		caddyConfig, _ = client.GetCurrentConfig()
 	}
+
+	// add the reverse proxy
+
+	fmt.Println("Current Caddy config")
+	fmt.Println(caddyConfig.Apps.HTTP)
 
 	return nil
 }
