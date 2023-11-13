@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"os"
 
@@ -35,16 +34,21 @@ ensuring that your application is updated with no service interruption.`,
 		// Load configuration
 		cfg, err := config.LoadConfig(cfgPath)
 		if err != nil {
-			cmd.PrintErr(err)
+			cmd.PrintErrf("Failed to pull image: %v", err)
 			os.Exit(1)
 		}
 
 		port, err := deploy.Deploy(cfg)
 		if err != nil {
-			log.Fatalf("Failed to pull image: %v", err)
+			cmd.PrintErrf("Failed to pull image: %v", err)
+			os.Exit(1)
 		}
 
-		caddy.SetupCaddy(port, cfg)
+		err = caddy.SetupCaddy(port, cfg)
+		if err != nil {
+			cmd.PrintErrf("Failed to setup Caddy: %v", err)
+			os.Exit(1)
+		}
 	},
 }
 
