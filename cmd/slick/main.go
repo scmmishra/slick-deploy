@@ -7,6 +7,7 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,14 @@ var deployCmd = &cobra.Command{
 	Long: `The deploy command starts a new deployment process
 ensuring that your application is updated with no service interruption.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// load the .env file
+		envPath, _ := cmd.Flags().GetString("env")
+		if envPath == "" {
+			envPath = ".env"
+		}
+
+		godotenv.Load(envPath)
+
 		cfgPath, _ := cmd.Flags().GetString("config")
 		// if cfgPath is not preset, use the slick.yml in the current directory
 		if cfgPath == "" {
@@ -56,7 +65,9 @@ func Execute() {
 
 func init() {
 	var cfgFile string
+	var envFile string
 	deployCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Path to the configuration file")
+	deployCmd.Flags().StringVarP(&envFile, "env", "e", "", "Path to the env file")
 	rootCmd.AddCommand(deployCmd)
 }
 
