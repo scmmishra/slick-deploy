@@ -102,11 +102,21 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, er
 		return nil, err
 	}
 
+	envs := []string{}
+
+	for _, env := range cfg.App.ENV {
+		envValue, exists := os.LookupEnv(env)
+		if exists {
+			envs = append(envs, env+"="+envValue)
+		}
+	}
+
 	containerConfig := &container.Config{
 		Image: imageName,
 		ExposedPorts: nat.PortSet{
 			nat.Port(fmt.Sprintf("%d/tcp", cfg.App.ContainerPort)): struct{}{},
 		},
+		Env: envs,
 	}
 
 	hostConfig := &container.HostConfig{
