@@ -17,6 +17,7 @@ type App struct {
 	Name          string    `yaml:"name"`
 	ImageName     string    `yaml:"image_name"`
 	ContainerPort int       `yaml:"container_port"`
+	ENV           []string  `yaml:"env"`
 	PortRange     PortRange `yaml:"port_range"`
 }
 
