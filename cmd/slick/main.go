@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-
 	"os"
 
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
+
 	"github.com/spf13/cobra"
 )
 
