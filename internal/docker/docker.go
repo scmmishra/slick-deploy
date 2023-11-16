@@ -47,8 +47,6 @@ func PullImage(imageName string) error {
 		return err
 	}
 
-	fmt.Println("Pulling image...")
-
 	out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
 	if err != nil {
 		return err
