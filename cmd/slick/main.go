@@ -42,13 +42,13 @@ ensuring that your application is updated with no service interruption.`,
 		// Load configuration
 		cfg, err := config.LoadConfig(cfgPath)
 		if err != nil {
-			cmd.PrintErrf("Failed to pull image: %v", err)
+			cmd.PrintErrf("Failed to load config: %v", err)
 			os.Exit(1)
 		}
 
 		err = deploy.Deploy(cfg)
 		if err != nil {
-			cmd.PrintErrf("Failed to pull image: %v", err)
+			cmd.PrintErrf("Failed to deploy image: %v", err)
 			os.Exit(1)
 		}
 	},
