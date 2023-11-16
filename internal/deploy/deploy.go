@@ -6,6 +6,7 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/docker"
+	"github.com/scmmishra/slick-deploy/internal/health"
 )
 
 func Deploy(cfg config.DeploymentConfig) error {
@@ -13,7 +14,6 @@ func Deploy(cfg config.DeploymentConfig) error {
 
 	err := docker.PullImage(cfg.App.ImageName)
 	if err != nil {
-		fmt.Println("Failed to pull image")
 		return err
 	}
 
@@ -23,6 +23,15 @@ func Deploy(cfg config.DeploymentConfig) error {
 	fmt.Println("- Spinning up new container")
 	newContainer, err := docker.RunContainer(cfg.App.ImageName, cfg)
 	if err != nil {
+		return err
+	}
+
+	fmt.Println("- Waiting for container to be healthy")
+	host := fmt.Sprintf("http://localhost:%d", newContainer.Port)
+	err = health.CheckHealth(host, &cfg.HealthCheck)
+	if err != nil {
+		fmt.Println("Container is unhealthy, rolling back")
+		docker.StopContainer(newContainer.ID)
 		return err
 	}
 
