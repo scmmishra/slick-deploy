@@ -1,0 +1,36 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test & Generate Coverfile
+      run: go test -coverprofile=cover.out -v ./...
+
+    - name: Report test coverage results to DeepSource
+      run: |
+        # Install deepsource CLI
+        curl https://deepsource.io/cli | sh
+
+        # From the root directory, run the report coverage command
+        ../bin/deepsource report --analyzer test-coverage --key go --value-file ./cover.out
+      env:
+        DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+    
