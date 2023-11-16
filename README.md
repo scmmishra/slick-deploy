@@ -104,3 +104,17 @@ alias slickdev="<path-to-project>/bin/slick"
 ```
 
 > Note, we use `slickdev` instead of `slick` to avoid conflicts with the global slick binary.
+
+#### Testing
+
+To run the tests, use the following command
+
+```bash
+go test ./... -coverprofile=coverage.out
+```
+
+This will also generate the coverage report, which can be viewed by running
+
+```bash
+go tool cover -html=coverage.out
+```
