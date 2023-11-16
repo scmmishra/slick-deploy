@@ -78,5 +78,9 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 		config.Caddy.AdminAPI = "http://localhost:2019"
 	}
 
+	if config.HealthCheck.TimeoutSeconds == 0 {
+		config.HealthCheck.TimeoutSeconds = 5
+	}
+
 	return config, nil
 }
