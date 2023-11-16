@@ -2,24 +2,31 @@ app:
   name: "memos"
   image_name: "ghcr.io/usememos/memos"
   container_port: 5230
+  env:
+    - AWS_S3_ACCESS_KEY_ID
+    - AWS_S3_BUCKET_NAME
+    - AWS_S3_CUSTOM_DOMAIN
+    - AWS_S3_ENDPOINT_URL
+    - AWS_S3_REGION_NAME
+    - AWS_S3_SECRET_ACCESS_KEY
   port_range:
     start: 8000
     end: 9000
 
 caddy:
   admin_api: "http://localhost:2019"
-  servers:
+  rules:
     - match: "*.pages.dev"
       reverse_proxy:
-        - path: "/"
-          to: "http://localhost:{memos.port}"
-
-    - match: "bookmarks.shivam.dev"
-      reverse_proxy:
-        - path: "/"
+        - path: ""
           to: "http://localhost:{port}"
+
+    - match: "localhost"
+      reverse_proxy:
+        - path: ""
+          to: "localhost:{port}"
         - path: "/api/*"
-          to: "http://localhost:{port}/internal/api/*"
+          to: "localhost:{port}/internal/api/*"
 
 health_check:
   endpoint: "/health"
