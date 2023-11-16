@@ -58,10 +58,7 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	defer yamlFile.Close()
 
 	// Read the file content
-	yamlData, err := io.ReadAll(yamlFile)
-	if err != nil {
-		return config, err
-	}
+	yamlData, _ := io.ReadAll(yamlFile)
 
 	// Unmarshal the YAML into the config struct
 	err = yaml.Unmarshal(yamlData, &config)
