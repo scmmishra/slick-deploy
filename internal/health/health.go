@@ -9,7 +9,7 @@ import (
 )
 
 func CheckHealth(host string, cfg *config.HealthCheck) error {
-	if cfg.Endpoint == "" {
+	if cfg.Endpoint == "" || host == "" {
 		return nil
 	}
 
