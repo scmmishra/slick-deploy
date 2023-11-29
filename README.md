@@ -58,6 +58,9 @@ app:
   name: "memos"
   image_name: "ghcr.io/usememos/memos"
   container_port: 5230
+  registry:
+    username: "<username>"
+    password: SLICK_REGISTRY_PASSWORD
   env:
     - AWS_S3_ACCESS_KEY_ID
     - AWS_S3_BUCKET_NAME

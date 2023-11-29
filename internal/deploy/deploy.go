@@ -12,7 +12,7 @@ import (
 func Deploy(cfg config.DeploymentConfig) error {
 	fmt.Println("Deploying...")
 
-	err := docker.PullImage(cfg.App.ImageName)
+	err := docker.PullImage(cfg.App.ImageName, cfg.App.Registry)
 	if err != nil {
 		return err
 	}

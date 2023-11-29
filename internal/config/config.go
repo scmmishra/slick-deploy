@@ -13,12 +13,18 @@ type PortRange struct {
 	End   int `yaml:"end"`
 }
 
+type RegistryConfig struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
 type App struct {
-	Name          string    `yaml:"name"`
-	ImageName     string    `yaml:"image_name"`
-	ContainerPort int       `yaml:"container_port"`
-	ENV           []string  `yaml:"env"`
-	PortRange     PortRange `yaml:"port_range"`
+	Name          string         `yaml:"name"`
+	ImageName     string         `yaml:"image_name"`
+	Registry      RegistryConfig `yaml:"registry"`
+	ContainerPort int            `yaml:"container_port"`
+	ENV           []string       `yaml:"env"`
+	PortRange     PortRange      `yaml:"port_range"`
 }
 
 type ReverseProxy struct {
@@ -80,6 +86,13 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 
 	if config.HealthCheck.TimeoutSeconds == 0 {
 		config.HealthCheck.TimeoutSeconds = 5
+	}
+
+	if config.App.Registry.Username != "" && config.App.Registry.Password != "" {
+		envValue, exists := os.LookupEnv(config.App.Registry.Password)
+		if exists {
+			config.App.Registry.Password = envValue
+		}
 	}
 
 	return config, nil

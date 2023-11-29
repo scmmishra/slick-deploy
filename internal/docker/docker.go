@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/scmmishra/slick-deploy/internal/config"
@@ -36,7 +38,7 @@ func NewDockerClient() (*client.Client, error) {
 
 // PullImage is a function that pulls a Docker image from a Docker registry.
 // This is similar to running `docker pull <image>` from the command line.
-func PullImage(imageName string) error {
+func PullImage(imageName string, registryConfig config.RegistryConfig) error {
 	// A context in Go is used to define a deadline or a cancellation signal
 	// for requests made to external resources, like a Docker Daemon in this case.
 	ctx := context.Background()
@@ -47,7 +49,23 @@ func PullImage(imageName string) error {
 		return err
 	}
 
-	out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+	authConfig := registry.AuthConfig{
+		Username: registryConfig.Username,
+		Password: registryConfig.Password,
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+
+	if err != nil {
+		return err
+	}
+
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+
+	options := types.ImagePullOptions{
+		RegistryAuth: authStr,
+	}
+
+	out, err := cli.ImagePull(ctx, imageName, options)
 	if err != nil {
 		return err
 	}
