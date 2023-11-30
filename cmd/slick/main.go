@@ -6,6 +6,7 @@ import (
 
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
+	"github.com/scmmishra/slick-deploy/internal/status"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
@@ -54,6 +55,15 @@ ensuring that your application is updated with no service interruption.`,
 	},
 }
 
+var statusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Get the status of your application",
+	Long:  `The status command shows the status of your application.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		status.GetStatus()
+	},
+}
+
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -69,6 +79,7 @@ func init() {
 	deployCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Path to the configuration file")
 	deployCmd.Flags().StringVarP(&envFile, "env", "e", "", "Path to the env file")
 	rootCmd.AddCommand(deployCmd)
+	rootCmd.AddCommand(statusCmd)
 }
 
 func main() {
