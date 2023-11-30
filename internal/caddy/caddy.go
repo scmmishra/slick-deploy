@@ -46,7 +46,7 @@ func SetupCaddy(port int, cfg config.DeploymentConfig) error {
 	}
 
 	client := NewCaddyClient(cfg.Caddy.AdminAPI)
-	client.Load(caddyfile)
+	err = client.Load(caddyfile)
 
 	if err != nil {
 		return err
