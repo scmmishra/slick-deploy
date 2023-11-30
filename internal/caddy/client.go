@@ -15,7 +15,7 @@ type CaddyClient struct {
 	HTTPClient *http.Client
 }
 
-func NewCaddyClient(baseURL string) CaddyClientInterface {
+var NewCaddyClient = func(baseURL string) CaddyClientInterface {
 	return &CaddyClient{
 		BaseURL:    baseURL,
 		HTTPClient: &http.Client{},
