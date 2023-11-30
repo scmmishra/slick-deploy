@@ -22,7 +22,7 @@ type DataWithPort struct {
 }
 
 // ConvertToCaddyfile translates the CaddyConfig struct to a Caddyfile string
-func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) (string, error) {
+func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) string {
 	var caddyfileBuilder strings.Builder
 
 	for _, rule := range caddyCfg.Rules {
@@ -36,17 +36,14 @@ func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) (string, error) {
 		caddyfileBuilder.WriteString("}\n")
 	}
 
-	return caddyfileBuilder.String(), nil
+	return caddyfileBuilder.String()
 }
 
 func SetupCaddy(port int, cfg config.DeploymentConfig) error {
-	caddyfile, err := ConvertToCaddyfile(cfg.Caddy, port)
-	if err != nil {
-		return err
-	}
+	caddyfile := ConvertToCaddyfile(cfg.Caddy, port)
 
 	client := NewCaddyClient(cfg.Caddy.AdminAPI)
-	err = client.Load(caddyfile)
+	err := client.Load(caddyfile)
 
 	if err != nil {
 		return err

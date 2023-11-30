@@ -24,10 +24,17 @@ func TestConvertToCaddyfile(t *testing.T) {
 		},
 	}
 
-	caddyfile, err := ConvertToCaddyfile(caddyCfg, 8080)
-	assert.NoError(t, err)
+	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
 	expectedCaddyfile := "localhost {\n  reverse_proxy / http://localhost:8080\n}\n"
 	assert.Equal(t, expectedCaddyfile, caddyfile)
+}
+
+func TestConvertToCaddyfile_EmptyRules(t *testing.T) {
+	caddyCfg := config.CaddyConfig{
+		Rules: []config.Rule{},
+	}
+	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
+	assert.Equal(t, "", caddyfile)
 }
 
 type MockCaddyClient struct {
