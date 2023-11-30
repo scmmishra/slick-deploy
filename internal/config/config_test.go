@@ -95,3 +95,34 @@ app:
 	assert.Equal(t, 9000, config.App.PortRange.End)
 	assert.Equal(t, "http://localhost:2019", config.Caddy.AdminAPI)
 }
+
+func TestLoadConfigRegistry(t *testing.T) {
+	// Set up a temporary YAML file with valid configuration data
+	tempFile, err := os.CreateTemp("", "*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+	_, err = tempFile.WriteString(`
+app:
+  name: "Test App"
+  image_name: "testapp/image"
+  container_port: 8080
+  registry:
+    username: "testuser"
+    password: TEST_REGISTRY_PASSWORD
+`)
+	require.NoError(t, err)
+	err = tempFile.Close()
+	require.NoError(t, err)
+
+	// Set the environment variable
+	os.Setenv("TEST_REGISTRY_PASSWORD", "testpassword")
+	defer os.Unsetenv("TEST_REGISTRY_PASSWORD")
+
+	// Load the configuration from the temporary file
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+
+	// Assert that the configuration values are as expected
+	assert.Equal(t, "testuser", config.App.Registry.Username)
+	assert.Equal(t, "testpassword", config.App.Registry.Password)
+}
