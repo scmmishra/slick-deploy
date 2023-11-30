@@ -2,6 +2,10 @@
 
 Slick Deploy is a command-line tool designed to facilitate zero-downtime deployment for applications running in Docker containers, with Caddy as the reverse proxy.
 
+> [!WARNING]
+> Slick is not ready for production, but you can give it a shot if you're feeling adventurous
+
+
 ## Features
 
 - Zero-downtime deployment: Update your running application without interrupting service.
