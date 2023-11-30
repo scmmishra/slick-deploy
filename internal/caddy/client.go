@@ -6,12 +6,16 @@ import (
 	"net/http"
 )
 
+type CaddyClientInterface interface {
+	Load(caddyfile string) error
+}
+
 type CaddyClient struct {
 	BaseURL    string
 	HTTPClient *http.Client
 }
 
-func NewCaddyClient(baseURL string) *CaddyClient {
+func NewCaddyClient(baseURL string) CaddyClientInterface {
 	return &CaddyClient{
 		BaseURL:    baseURL,
 		HTTPClient: &http.Client{},
