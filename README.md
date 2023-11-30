@@ -92,6 +92,22 @@ health_check:
   timeout_seconds: 5
 ```
 
+### Managing environment variables
+
+You can point to an `.env` file to load environment variables from. This is useful for storing sensitive information like passwords and API keys.
+
+```bash
+slick deploy --config path/to/your/config.yaml --env path/to/your/.env
+```
+
+However, it is best to use a tool like [Phase](https://phase.dev) to manage your environment variables. Phase allows you to store your environment variables in a secure, encrypted vault, and then inject them into your application at runtime.
+
+```bash
+phase run slick deploy
+```
+
+Read more about Phase CLI [here](https://docs.phase.dev/cli/commands).
+
 ### Development
 
 To run the build with air use the following command
