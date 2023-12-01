@@ -1,3 +1,14 @@
+<div align="center">
+<br>
+<br>
+<p>
+  <img src="./.github/logo-light.svg" alt="SlickDeploy" width="300">
+</p>
+<br>
+<br>
+
+</div>
+
 # Slick Deploy
 
 Slick Deploy is a command-line tool designed to facilitate zero-downtime deployment for applications running in Docker containers, with Caddy as the reverse proxy.
