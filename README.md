@@ -16,7 +16,6 @@ Slick Deploy is a command-line tool designed to facilitate zero-downtime deploym
 > [!WARNING]
 > Slick is not ready for production, but you can give it a shot if you're feeling adventurous
 
-
 ## Features
 
 - Zero-downtime deployment: Update your running application without interrupting service.
@@ -71,7 +70,7 @@ Create a config.yaml file with your deployment settings. Here's an example confi
 ```yaml
 app:
   name: "memos"
-  image_name: "ghcr.io/usememos/memos"
+  image: "ghcr.io/usememos/memos"
   container_port: 5230
   registry:
     username: "<username>"

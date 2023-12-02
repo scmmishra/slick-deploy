@@ -20,7 +20,7 @@ type RegistryConfig struct {
 
 type App struct {
 	Name          string         `yaml:"name"`
-	ImageName     string         `yaml:"image_name"`
+	ImageName     string         `yaml:"image"`
 	Registry      RegistryConfig `yaml:"registry"`
 	ContainerPort int            `yaml:"container_port"`
 	ENV           []string       `yaml:"env"`

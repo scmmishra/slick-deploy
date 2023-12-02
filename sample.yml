@@ -1,6 +1,6 @@
 app:
   name: "memos"
-  image_name: "ghcr.io/usememos/memos"
+  image: "ghcr.io/usememos/memos"
   container_port: 5230
   env:
     - AWS_S3_ACCESS_KEY_ID

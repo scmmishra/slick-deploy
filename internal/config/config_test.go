@@ -17,7 +17,7 @@ func TestLoadConfigSuccess(t *testing.T) {
 	_, err = tempFile.WriteString(`
 app:
   name: "Test App"
-  image_name: "testapp/image"
+  image: "testapp/image"
   container_port: 8080
   env: ["ENV_VAR=VALUE"]
   port_range:
@@ -104,7 +104,7 @@ func TestLoadConfigRegistry(t *testing.T) {
 	_, err = tempFile.WriteString(`
 app:
   name: "Test App"
-  image_name: "testapp/image"
+  image: "testapp/image"
   container_port: 8080
   registry:
     username: "testuser"
