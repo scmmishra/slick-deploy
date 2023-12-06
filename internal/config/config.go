@@ -44,8 +44,10 @@ type CaddyConfig struct {
 }
 
 type HealthCheck struct {
-	Endpoint       string `yaml:"endpoint"`
-	TimeoutSeconds int    `yaml:"timeout_seconds"`
+	Endpoint        string `yaml:"endpoint"`
+	TimeoutSeconds  int    `yaml:"timeout_seconds"`
+	IntervalSeconds int    `yaml:"interval_seconds"`
+	MaxRetries      int    `yaml:"max_retries"`
 }
 
 type DeploymentConfig struct {
@@ -87,6 +89,14 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 
 	if config.HealthCheck.TimeoutSeconds == 0 {
 		config.HealthCheck.TimeoutSeconds = 5
+	}
+
+	if config.HealthCheck.IntervalSeconds == 0 {
+		config.HealthCheck.IntervalSeconds = 5
+	}
+
+	if config.HealthCheck.MaxRetries == 0 {
+		config.HealthCheck.MaxRetries = 3
 	}
 
 	if config.App.Registry.Username != "" && config.App.Registry.Password != "" {

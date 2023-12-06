@@ -25,8 +25,8 @@ func CheckHealth(host string, cfg *config.HealthCheck) error {
 		Timeout: timeout,
 	}
 
-	maxRetries := 5
-	delay := time.Second * 1
+	maxRetries := cfg.MaxRetries
+	delay := time.Duration(cfg.IntervalSeconds) * time.Second
 
 	for i := 0; i < maxRetries; i++ {
 		resp, err := client.Get(endpoint)
