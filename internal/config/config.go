@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -35,6 +37,7 @@ type ReverseProxy struct {
 
 type Rule struct {
 	Match        string         `yaml:"match"`
+	Tls          string         `yaml:"tls"`
 	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
 }
 
@@ -54,6 +57,19 @@ type DeploymentConfig struct {
 	App         App         `yaml:"app"`
 	Caddy       CaddyConfig `yaml:"caddy"`
 	HealthCheck HealthCheck `yaml:"health_check"`
+}
+
+func replaceEnvVariables(input string) (string, error) {
+	re := regexp.MustCompile(`\{env\.([a-zA-Z_][a-zA-Z0-9_]*)\}`)
+
+	return re.ReplaceAllStringFunc(input, func(match string) string {
+		// Extract the variable name
+		varName := strings.TrimPrefix(match, "{env.")
+		varName = strings.TrimSuffix(varName, "}")
+
+		// Get the environment variable value
+		return os.Getenv(varName)
+	}), nil
 }
 
 func LoadConfig(path string) (DeploymentConfig, error) {
@@ -97,6 +113,15 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 
 	if config.HealthCheck.MaxRetries == 0 {
 		config.HealthCheck.MaxRetries = 3
+	}
+
+	for _, rule := range config.Caddy.Rules {
+		newTlsValue, err := replaceEnvVariables(rule.Tls)
+		if err != nil {
+			return config, err
+		}
+
+		rule.Tls = newTlsValue
 	}
 
 	if config.App.Registry.Username != "" && config.App.Registry.Password != "" {
