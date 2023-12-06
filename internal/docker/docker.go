@@ -139,11 +139,15 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, er
 		PortBindings: nat.PortMap{
 			nat.Port(fmt.Sprintf("%d/tcp", cfg.App.ContainerPort)): []nat.PortBinding{
 				{
-					HostIP:   "127.0.0.1",
+					HostIP:   "0.0.0.0",
 					HostPort: fmt.Sprintf("%d", port),
 				},
 			},
 		},
+	}
+
+	if cfg.App.Network != "" {
+		hostConfig.NetworkMode = container.NetworkMode(cfg.App.Network)
 	}
 
 	resp, err := cli.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, "")

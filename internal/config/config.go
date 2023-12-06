@@ -23,6 +23,7 @@ type App struct {
 	ImageName     string         `yaml:"image"`
 	Registry      RegistryConfig `yaml:"registry"`
 	ContainerPort int            `yaml:"container_port"`
+	Network       string         `yaml:"network"`
 	ENV           []string       `yaml:"env"`
 	PortRange     PortRange      `yaml:"port_range"`
 }
