@@ -66,9 +66,12 @@ func replaceEnvVariables(input string) (string, error) {
 		// Extract the variable name
 		varName := strings.TrimPrefix(match, "{env.")
 		varName = strings.TrimSuffix(varName, "}")
+		envValue, exists := os.LookupEnv(varName)
+		if exists {
+			return envValue
+		}
 
-		// Get the environment variable value
-		return os.Getenv(varName)
+		return match
 	}), nil
 }
 
