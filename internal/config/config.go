@@ -118,15 +118,13 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 		config.HealthCheck.MaxRetries = 3
 	}
 
-	for _, rule := range config.Caddy.Rules {
+	for i, rule := range config.Caddy.Rules {
 		newTlsValue, err := replaceEnvVariables(rule.Tls)
 		if err != nil {
 			return config, err
 		}
 
-		rule.Tls = newTlsValue
-
-		fmt.Println(rule.Tls)
+		config.Caddy.Rules[i].Tls = newTlsValue
 	}
 
 	if config.App.Registry.Username != "" && config.App.Registry.Password != "" {
