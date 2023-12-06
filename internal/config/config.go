@@ -125,6 +125,8 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 		}
 
 		rule.Tls = newTlsValue
+
+		fmt.Println(rule.Tls)
 	}
 
 	if config.App.Registry.Username != "" && config.App.Registry.Password != "" {
