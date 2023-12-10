@@ -40,8 +40,6 @@ func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) string {
 		caddyfileBuilder.WriteString("}\n")
 	}
 
-	fmt.Println(caddyfileBuilder.String())
-
 	return caddyfileBuilder.String()
 }
 
