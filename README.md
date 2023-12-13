@@ -42,10 +42,8 @@ To start using Slick Deploy, install it right from the source:
 ```bash
 git clone https://github.com/scmmishra/slick-deploy.git
 cd slick-deploy
-go build -o slick ./cmd/slick
+make install
 ```
-
-You can now move the slick binary to a directory in your PATH to make it globally accessible.
 
 ### Usage
 
