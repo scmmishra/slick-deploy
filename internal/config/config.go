@@ -76,63 +76,56 @@ func replaceEnvVariables(input string) (string, error) {
 }
 
 func LoadConfig(path string) (DeploymentConfig, error) {
-	var config DeploymentConfig
-	yamlFile, err := os.Open(path)
+	f, err := os.Open(path)
 	if err != nil {
-		return config, fmt.Errorf("error opening config file: %v", err)
+		return DeploymentConfig{}, fmt.Errorf("error opening config file: %v", err)
 	}
 
 	// close the file when we're done
-	defer yamlFile.Close()
+	defer f.Close()
 
 	// Read the file content
-	yamlData, _ := io.ReadAll(yamlFile)
+	data, _ := io.ReadAll(f)
 
-	// Unmarshal the YAML into the config struct
-	err = yaml.Unmarshal(yamlData, &config)
+	// Create a default deployment config
+	c := DeploymentConfig{
+		App: App{
+			PortRange: PortRange{
+				Start: 8000,
+				End:   9000,
+			},
+		},
+		Caddy: CaddyConfig{
+			AdminAPI: "http://localhost:2019",
+		},
+		HealthCheck: HealthCheck{
+			TimeoutSeconds:  5,
+			IntervalSeconds: 5,
+			MaxRetries:      3,
+		},
+	}
+
+	// Override the default config with the config file
+	err = yaml.Unmarshal(data, &c)
 	if err != nil {
-		return config, err
+		return c, err
 	}
 
-	if config.App.PortRange.Start == 0 {
-		config.App.PortRange.Start = 8000
-	}
-
-	if config.App.PortRange.End == 0 {
-		config.App.PortRange.End = 9000
-	}
-
-	if config.Caddy.AdminAPI == "" {
-		config.Caddy.AdminAPI = "http://localhost:2019"
-	}
-
-	if config.HealthCheck.TimeoutSeconds == 0 {
-		config.HealthCheck.TimeoutSeconds = 5
-	}
-
-	if config.HealthCheck.IntervalSeconds == 0 {
-		config.HealthCheck.IntervalSeconds = 5
-	}
-
-	if config.HealthCheck.MaxRetries == 0 {
-		config.HealthCheck.MaxRetries = 3
-	}
-
-	for i, rule := range config.Caddy.Rules {
+	for i, rule := range c.Caddy.Rules {
 		newTlsValue, err := replaceEnvVariables(rule.Tls)
 		if err != nil {
-			return config, err
+			return c, err
 		}
 
-		config.Caddy.Rules[i].Tls = newTlsValue
+		c.Caddy.Rules[i].Tls = newTlsValue
 	}
 
-	if config.App.Registry.Username != "" && config.App.Registry.Password != "" {
-		envValue, exists := os.LookupEnv(config.App.Registry.Password)
+	if c.App.Registry.Username != "" && c.App.Registry.Password != "" {
+		envValue, exists := os.LookupEnv(c.App.Registry.Password)
 		if exists {
-			config.App.Registry.Password = envValue
+			c.App.Registry.Password = envValue
 		}
 	}
 
-	return config, nil
+	return c, nil
 }
