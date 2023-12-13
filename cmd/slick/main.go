@@ -32,7 +32,11 @@ ensuring that your application is updated with no service interruption.`,
 			envPath = ".env"
 		}
 
-		godotenv.Load(envPath)
+		err := godotenv.Load(envPath)
+		if err != nil {
+			cmd.PrintErrf("Failed to load env file: %v", err)
+			os.Exit(1)
+		}
 
 		cfgPath, _ := cmd.Flags().GetString("config")
 		// if cfgPath is not preset, use the slick.yml in the current directory
