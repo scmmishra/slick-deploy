@@ -29,6 +29,11 @@ watch:
 	@which reflex > /dev/null || (go install github.com/cespare/reflex@latest)
 	reflex -s -r '\.go$$' make run
 
+.PHONY: test
+## test: Run all tests
+test:
+	@go test -v ./...
+
 .PHONY: help
 all: help
 ## help: show this help message
