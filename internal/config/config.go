@@ -59,7 +59,7 @@ type DeploymentConfig struct {
 	HealthCheck HealthCheck `yaml:"health_check"`
 }
 
-func replaceEnvVariables(input string) (string, error) {
+func replaceEnvVariables(input string) string {
 	re := regexp.MustCompile(`\{env\.([a-zA-Z_][a-zA-Z0-9_]*)\}`)
 
 	return re.ReplaceAllStringFunc(input, func(match string) string {
@@ -71,8 +71,9 @@ func replaceEnvVariables(input string) (string, error) {
 			return envValue
 		}
 
-		return match
-	}), nil
+		// throw an error if the variable is not set
+		return ""
+	})
 }
 
 func LoadConfig(path string) (DeploymentConfig, error) {
@@ -112,11 +113,7 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	}
 
 	for i, rule := range c.Caddy.Rules {
-		newTlsValue, err := replaceEnvVariables(rule.Tls)
-		if err != nil {
-			return c, err
-		}
-
+		newTlsValue := replaceEnvVariables(rule.Tls)
 		c.Caddy.Rules[i].Tls = newTlsValue
 	}
 
