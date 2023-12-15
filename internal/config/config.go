@@ -71,8 +71,7 @@ func replaceEnvVariables(input string) string {
 			return envValue
 		}
 
-		// throw an error if the variable is not set
-		return ""
+		return match
 	})
 }
 
