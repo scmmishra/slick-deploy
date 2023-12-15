@@ -4,10 +4,22 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/jonboulle/clockwork"
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/stretchr/testify/assert"
 )
+
+type sleepCounterClock struct {
+	clockwork.FakeClock
+	sleepCount int
+}
+
+func (s *sleepCounterClock) Sleep(d time.Duration) {
+	s.sleepCount++
+	s.FakeClock.Sleep(d)
+}
 
 // setupTestServer helps in creating a test HTTP server.
 func setupTestServer(handler http.HandlerFunc) (string, func()) {
@@ -47,8 +59,10 @@ func TestCheckHealth_Success(t *testing.T) {
 	defer teardown()
 
 	err := CheckHealth(serverURL, &config.HealthCheck{
-		Endpoint:       "/health",
-		TimeoutSeconds: 5,
+		Endpoint:        "/",
+		TimeoutSeconds:  5,
+		IntervalSeconds: 2,
+		MaxRetries:      3,
 	})
 
 	assert.NoError(t, err, "Expected no error for healthy response")
@@ -89,4 +103,62 @@ func TestCheckHealth_NetworkError(t *testing.T) {
 	assert.Error(t, err, "Expected a network error")
 }
 
-// Additional test cases can be added here
+func TestCheckHealth_SleepWithError(t *testing.T) {
+	t.Parallel()
+
+	clk := &sleepCounterClock{FakeClock: clockwork.NewFakeClock()}
+
+	serverURL, teardown := setupTestServer(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError) // Return 500 Internal Server Error
+	})
+
+	defer teardown()
+
+	go func() {
+		for {
+			clk.Advance(1 * time.Second)
+		}
+	}()
+
+	err := CheckHealthWithClock(serverURL, &config.HealthCheck{
+		Endpoint:        "/health",
+		TimeoutSeconds:  5,
+		IntervalSeconds: 2,
+		MaxRetries:      3,
+	}, clk)
+
+	assert.Error(t, err, "Expected an error for server error response")
+	assert.Greater(t, clk.sleepCount, 0, "Expected Sleep to be called at least once")
+}
+
+func TestCheckHealthWithClock_StalledServer(t *testing.T) {
+	t.Parallel()
+
+	// Create a test server that delays its response
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(5 * time.Second) // Delay response
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	clk := clockwork.NewFakeClock()
+
+	// Run CheckHealthWithClock in a separate goroutine, as it will block due to the server delay
+	go func() {
+		err := CheckHealthWithClock(server.URL, &config.HealthCheck{
+			Endpoint:        "/health",
+			TimeoutSeconds:  2, // This is less than the server delay
+			IntervalSeconds: 2,
+			MaxRetries:      1,
+		}, clk)
+
+		// We expect an error, as the server response will be delayed beyond the timeout
+		assert.Error(t, err, "Expected an error due to server response delay")
+	}()
+
+	// Advance the clock in a loop to simulate time passing
+	for i := 0; i < 5; i++ {
+		clk.Advance(1 * time.Second)
+		time.Sleep(1 * time.Second) // This is needed to allow the CheckHealthWithClock goroutine to progress
+	}
+}

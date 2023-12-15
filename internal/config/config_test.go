@@ -126,3 +126,56 @@ app:
 	assert.Equal(t, "testuser", config.App.Registry.Username)
 	assert.Equal(t, "testpassword", config.App.Registry.Password)
 }
+
+func TestLoadConfig_ReplaceEnvVariablesInCaddyRules(t *testing.T) {
+	// Set up a temporary YAML file with configuration data that includes environment variables
+	tempFile, err := os.CreateTemp("", "*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+	_, err = tempFile.WriteString(`
+caddy:
+  admin_api: "http://localhost:2019"
+  rules:
+    - match: "localhost"
+      tls: "{env.TEST_ENV_VAR}"
+`)
+	require.NoError(t, err)
+	err = tempFile.Close()
+	require.NoError(t, err)
+
+	// Set the environment variable that we're using in the config file
+	os.Setenv("TEST_ENV_VAR", "test value")
+	defer os.Unsetenv("TEST_ENV_VAR") // clean up after the test
+
+	// Load the configuration from the temporary file
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+
+	// Assert that the environment variable in the Caddy rule was replaced correctly
+	assert.Equal(t, "test value", config.Caddy.Rules[0].Tls)
+}
+
+func TestLoadConfig_MissingEnvVariablesInCaddyRules(t *testing.T) {
+	// Set up a temporary YAML file with configuration data that includes environment variables
+	tempFile, err := os.CreateTemp("", "*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+	_, err = tempFile.WriteString(`
+caddy:
+  admin_api: "http://localhost:2019"
+  rules:
+    - match: "localhost"
+      tls: "{env.TEST_ENV_VAR}"
+`)
+	require.NoError(t, err)
+	err = tempFile.Close()
+	require.NoError(t, err)
+
+	// Set the environment variable that we're using in the config file
+	// Load the configuration from the temporary file
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+
+	// Assert that the environment variable in the Caddy rule was replaced correctly
+	assert.Equal(t, "{env.TEST_ENV_VAR}", config.Caddy.Rules[0].Tls)
+}
