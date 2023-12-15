@@ -5,10 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jonboulle/clockwork"
 	"github.com/scmmishra/slick-deploy/internal/config"
 )
 
 func CheckHealth(host string, cfg *config.HealthCheck) error {
+	return CheckHealthWithClock(host, cfg, clockwork.NewRealClock())
+}
+
+func CheckHealthWithClock(host string, cfg *config.HealthCheck, clock clockwork.Clock) error {
 	if cfg.Endpoint == "" || host == "" {
 		return nil
 	}
@@ -31,7 +36,7 @@ func CheckHealth(host string, cfg *config.HealthCheck) error {
 	for i := 0; i < maxRetries; i++ {
 		resp, err := client.Get(endpoint)
 		if err != nil {
-			time.Sleep(delay)
+			clock.Sleep(delay)
 			continue
 		}
 
@@ -42,7 +47,7 @@ func CheckHealth(host string, cfg *config.HealthCheck) error {
 		}
 
 		fmt.Println("Retrying...")
-		time.Sleep(delay)
+		clock.Sleep(delay)
 	}
 
 	return fmt.Errorf("unable to reach endpoint %s after %d attempts", endpoint, maxRetries)
