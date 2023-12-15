@@ -14,6 +14,7 @@ func TestConvertToCaddyfile(t *testing.T) {
 		Rules: []config.Rule{
 			{
 				Match: "localhost",
+				Tls:   "internal",
 				ReverseProxy: []config.ReverseProxy{
 					{
 						Path: "/",
@@ -25,7 +26,7 @@ func TestConvertToCaddyfile(t *testing.T) {
 	}
 
 	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
-	expectedCaddyfile := "localhost {\n  reverse_proxy / http://localhost:8080\n}\n"
+	expectedCaddyfile := "localhost {\n  tls {\n    internal\n  }\n  reverse_proxy / http://localhost:8080\n}\n"
 	assert.Equal(t, expectedCaddyfile, caddyfile)
 }
 
