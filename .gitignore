@@ -24,3 +24,5 @@ slick.yml
 bin/*
 
 tmp/
+
+dist/
