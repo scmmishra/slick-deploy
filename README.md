@@ -23,6 +23,11 @@ Slick Deploy is a command-line tool designed to facilitate zero-downtime deploym
 - Health checks: Ensure your application is running correctly before switching over.
 - Rollback capability: Quickly revert to the previous version if something goes wrong.
 
+## Why?
+
+Just for fun, I couldn't find a tool that was minimal and had near zero-downtime deploys. All I was looking for something that worked as a slim layer between me and the tools I use to run apps on a VM. So I built it. 
+I also wanted to learn Go for a while, and Go is simply amazing for building CLI tools.
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
