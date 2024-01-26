@@ -27,22 +27,15 @@ var deployCmd = &cobra.Command{
 	Long: `The deploy command starts a new deployment process
 ensuring that your application is updated with no service interruption.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cfgPath, _ := cmd.Flags().GetString("config")
+
 		// load the .env file
 		envPath, _ := cmd.Flags().GetString("env")
-		if envPath == "" {
-			envPath = ".env"
-		}
 
 		err := godotenv.Load(envPath)
 		if err != nil {
 			cmd.PrintErrf("Failed to load env file: %v", err)
 			os.Exit(1)
-		}
-
-		cfgPath, _ := cmd.Flags().GetString("config")
-		// if cfgPath is not preset, use the slick.yml in the current directory
-		if cfgPath == "" {
-			cfgPath = "slick.yml"
 		}
 
 		// Load configuration
@@ -71,17 +64,13 @@ var statusCmd = &cobra.Command{
 
 var logsCmd = &cobra.Command{
 	Use:   "logs",
-	Short: "Display app logs",
-	Long:  `The logs command shows the logs output of your application.`,
+	Short: "Tail and follow app logs",
+	Long:  `The logs command shows the logs output of your application. It is similar to running 'docker logs -f <container-id>'`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// if cfgPath is not preset, use the slick.yml in the current directory
 		cfgPath, _ := cmd.Flags().GetString("config")
-		if cfgPath == "" {
-			cfgPath = "slick.yml"
-		}
 
-		tail, _ := cmd.Flags().GetBool("tail")
-		lines, _ := cmd.Flags().GetInt("lines")
+		tail, _ := cmd.Flags().GetString("tail")
 
 		// Load configuration
 		cfg, err := config.LoadConfig(cfgPath)
@@ -90,15 +79,13 @@ var logsCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Println(cfg.App.Name)
-
 		container := docker.FindContainer(cfg.App.ImageName)
 		if container == nil {
 			cmd.PrintErrf("No container found")
 			os.Exit(1)
 		}
 
-		docker.StreamLogs(container.ID, tail, lines)
+		docker.StreamLogs(container.ID, tail)
 	},
 }
 
@@ -121,8 +108,7 @@ func init() {
 	rootCmd.AddCommand(statusCmd)
 
 	logsCmd.Flags().StringP("config", "c", "slick.yml", "Path to the configuration file")
-	logsCmd.Flags().BoolP("tail", "t", false, "Tail logs")
-	logsCmd.Flags().IntP("lines", "l", 0, "Number of lines to show")
+	logsCmd.Flags().StringP("tail", "t", "all", "Tail logs")
 	rootCmd.AddCommand(logsCmd)
 }
 

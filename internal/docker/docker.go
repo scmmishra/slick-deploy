@@ -224,19 +224,11 @@ func StopContainer(containerID string) error {
 	return nil
 }
 
-func StreamLogs(container string, tail bool, lines int) error {
+func StreamLogs(container string, tail string) error {
 	ctx := context.Background()
 	cli, err := NewDockerClient()
 	if err != nil {
 		return err
-	}
-
-	// if tail and lines are both set, use lines
-	tailarg := ""
-	if tail && lines > 0 {
-		tailarg = fmt.Sprintf("%d", lines)
-	} else if tail {
-		tailarg = "all"
 	}
 
 	defer cli.Close()
@@ -245,7 +237,7 @@ func StreamLogs(container string, tail bool, lines int) error {
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,
-		Tail:       tailarg,
+		Tail:       tail,
 		Details:    true,
 	}
 
