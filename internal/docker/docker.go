@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -218,6 +219,64 @@ func StopContainer(containerID string) error {
 	err = cli.ContainerStop(ctx, containerID, stopOptions)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func StreamLogs(container string, tail bool, lines int) error {
+	ctx := context.Background()
+	cli, err := NewDockerClient()
+	if err != nil {
+		return err
+	}
+
+	// if tail and lines are both set, use lines
+	tailarg := ""
+	if tail && lines > 0 {
+		tailarg = fmt.Sprintf("%d", lines)
+	} else if tail {
+		tailarg = "all"
+	}
+
+	defer cli.Close()
+
+	options := types.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     true,
+		Tail:       tailarg,
+		Details:    true,
+	}
+
+	out, err := cli.ContainerLogs(ctx, container, options)
+	if err != nil {
+		return err
+	}
+
+	defer out.Close()
+
+	reader := bufio.NewReader(out)
+
+	for {
+		// Docker log lines have a 8 byte header, 4 byte big endian timestamp, and then the log message
+		header := make([]byte, 8)
+		_, err := reader.Read(header)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+
+		// Read the rest of the line as the log message
+		message, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+
+		// Print the log message
+		fmt.Print(message)
 	}
 
 	return nil

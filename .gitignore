@@ -21,8 +21,11 @@
 go.work
 
 slick.yml
+*.slick.yml
 bin/*
 
 tmp/
 
 dist/
+
+.env
