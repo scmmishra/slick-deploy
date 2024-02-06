@@ -80,3 +80,18 @@ func TestDockerService_StopContainer(t *testing.T) {
 	})
 	mockClient.AssertExpectations(t)
 }
+
+func TestDockerService_StreamLogs(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	containerID := "container123"
+	logStream := "test log stream\nmore logs\n"
+	mockClient.On("ContainerLogs", mock.Anything, containerID, mock.AnythingOfType("types.ContainerLogsOptions")).Return(io.NopCloser(strings.NewReader(logStream)), nil)
+
+	err := dockerService.StreamLogs(containerID, "all")
+	assert.NoError(t, err)
+
+	mockClient.AssertCalled(t, "ContainerLogs", mock.Anything, containerID, mock.AnythingOfType("types.ContainerLogsOptions"))
+	mockClient.AssertExpectations(t)
+}
