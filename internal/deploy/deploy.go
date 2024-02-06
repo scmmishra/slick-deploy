@@ -1,7 +1,11 @@
 package deploy
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
@@ -35,6 +39,11 @@ func Deploy(cfg config.DeploymentConfig) error {
 		return err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // Ensure resources are freed on exit
+
+	go handleSignals(ctx, cancel, dockerService, newContainer.ID)
+
 	fmt.Println("- Waiting for container to be healthy")
 	host := fmt.Sprintf("http://localhost:%d", newContainer.Port)
 	err = health.CheckHealth(host, &cfg.HealthCheck)
@@ -47,6 +56,8 @@ func Deploy(cfg config.DeploymentConfig) error {
 	fmt.Println("- Setting up caddy")
 	err = caddy.SetupCaddy(newContainer.Port, cfg)
 	if err != nil {
+		fmt.Println("Unable to setup caddy, rolling back")
+		dockerService.StopContainer(newContainer.ID)
 		return err
 	}
 
@@ -57,4 +68,21 @@ func Deploy(cfg config.DeploymentConfig) error {
 
 	fmt.Println("Deployed successfully")
 	return nil
+}
+
+func handleSignals(ctx context.Context, cancelFunc context.CancelFunc, dockerService *docker.DockerService, newContainerID string) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case <-sigs:
+		fmt.Println("Received interrupt signal, rolling back")
+		dockerService.StopContainer(newContainerID)
+	case <-ctx.Done():
+		// Context cancelled, stop listening for signals
+	}
+
+	// Clean up
+	signal.Stop(sigs)
+	close(sigs)
 }
