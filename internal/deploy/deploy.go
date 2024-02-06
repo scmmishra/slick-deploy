@@ -1,9 +1,9 @@
 package deploy
 
 import (
+	"context"
 	"fmt"
 	"os"
-
 	"os/signal"
 	"syscall"
 
@@ -39,15 +39,10 @@ func Deploy(cfg config.DeploymentConfig) error {
 		return err
 	}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // Ensure resources are freed on exit
 
-	go func() {
-		<-sigs
-		fmt.Println("Received interrupt signal, rolling back")
-		dockerService.StopContainer(newContainer.ID)
-		os.Exit(1)
-	}()
+	go handleSignals(ctx, cancel, dockerService, newContainer.ID)
 
 	fmt.Println("- Waiting for container to be healthy")
 	host := fmt.Sprintf("http://localhost:%d", newContainer.Port)
@@ -73,4 +68,21 @@ func Deploy(cfg config.DeploymentConfig) error {
 
 	fmt.Println("Deployed successfully")
 	return nil
+}
+
+func handleSignals(ctx context.Context, cancelFunc context.CancelFunc, dockerService *docker.DockerService, newContainerID string) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case <-sigs:
+		fmt.Println("Received interrupt signal, rolling back")
+		dockerService.StopContainer(newContainerID)
+	case <-ctx.Done():
+		// Context cancelled, stop listening for signals
+	}
+
+	// Clean up
+	signal.Stop(sigs)
+	close(sigs)
 }
