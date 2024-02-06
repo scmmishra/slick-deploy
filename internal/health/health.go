@@ -46,7 +46,7 @@ func CheckHealthWithClock(host string, cfg *config.HealthCheck, clock clockwork.
 			return nil
 		}
 
-		fmt.Println("Retrying...")
+		fmt.Println("  Retrying...")
 		clock.Sleep(delay)
 	}
 
