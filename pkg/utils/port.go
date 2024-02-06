@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"time"
 )
 
 // PortManager manages the allocation and deallocation of network ports.
@@ -27,12 +28,16 @@ func NewPortManager(startPort, maxPort, portIncrement int) *PortManager {
 // IsPortAvailable checks if a port is available for use.
 func (pm *PortManager) IsPortAvailable(port int) bool {
 	address := fmt.Sprintf("127.0.0.1:%d", port)
-	ln, err := net.Listen("tcp", address)
-	if err != nil {
+
+	// Attempt to connect to the port
+	conn, err := net.DialTimeout("tcp", address, 2*time.Second)
+
+	// If connection is successful, close it and return false (port is not available)
+	if err == nil {
+		conn.Close()
 		return false
 	}
 
-	ln.Close()
 	return true
 }
 
