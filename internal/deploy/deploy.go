@@ -2,6 +2,10 @@ package deploy
 
 import (
 	"fmt"
+	"os"
+
+	"os/signal"
+	"syscall"
 
 	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
@@ -34,6 +38,16 @@ func Deploy(cfg config.DeploymentConfig) error {
 	if err != nil {
 		return err
 	}
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		fmt.Println("Received interrupt signal, rolling back")
+		dockerService.StopContainer(newContainer.ID)
+		os.Exit(1)
+	}()
 
 	fmt.Println("- Waiting for container to be healthy")
 	host := fmt.Sprintf("http://localhost:%d", newContainer.Port)
