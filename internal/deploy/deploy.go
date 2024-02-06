@@ -30,7 +30,7 @@ func Deploy(cfg config.DeploymentConfig) error {
 	oldContainer := dockerService.FindContainer(cfg.App.ImageName)
 
 	fmt.Println("- Spinning up new container")
-	newContainer, err := dockerService.RunContainer(cfg.App.ImageName, cfg)
+	newContainer, err := dockerService.RunContainer(cfg.App.ImageName, cfg.App)
 	if err != nil {
 		return err
 	}

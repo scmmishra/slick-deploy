@@ -117,10 +117,10 @@ type Container struct {
 	Port int
 }
 
-func (ds *DockerService) RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, error) {
+func (ds *DockerService) RunContainer(imageName string, appCfg config.App) (*Container, error) {
 	ctx := context.Background()
 
-	portManager := utils.NewPortManager(cfg.App.PortRange.Start, cfg.App.PortRange.End, 1)
+	portManager := utils.NewPortManager(appCfg.PortRange.Start, appCfg.PortRange.End, 1)
 	port, err := portManager.AllocatePort()
 
 	if err != nil {
@@ -129,7 +129,7 @@ func (ds *DockerService) RunContainer(imageName string, cfg config.DeploymentCon
 
 	envs := []string{}
 
-	for _, env := range cfg.App.ENV {
+	for _, env := range appCfg.ENV {
 		envValue, exists := os.LookupEnv(env)
 		if exists {
 			envs = append(envs, env+"="+envValue)
@@ -139,14 +139,14 @@ func (ds *DockerService) RunContainer(imageName string, cfg config.DeploymentCon
 	containerConfig := &container.Config{
 		Image: imageName,
 		ExposedPorts: nat.PortSet{
-			nat.Port(fmt.Sprintf("%d/tcp", cfg.App.ContainerPort)): struct{}{},
+			nat.Port(fmt.Sprintf("%d/tcp", appCfg.ContainerPort)): struct{}{},
 		},
 		Env: envs,
 	}
 
 	hostConfig := &container.HostConfig{
 		PortBindings: nat.PortMap{
-			nat.Port(fmt.Sprintf("%d/tcp", cfg.App.ContainerPort)): []nat.PortBinding{
+			nat.Port(fmt.Sprintf("%d/tcp", appCfg.ContainerPort)): []nat.PortBinding{
 				{
 					HostIP:   "0.0.0.0",
 					HostPort: fmt.Sprintf("%d", port),
@@ -155,8 +155,8 @@ func (ds *DockerService) RunContainer(imageName string, cfg config.DeploymentCon
 		},
 	}
 
-	if cfg.App.Network != "" {
-		hostConfig.NetworkMode = container.NetworkMode(cfg.App.Network)
+	if appCfg.Network != "" {
+		hostConfig.NetworkMode = container.NetworkMode(appCfg.Network)
 	}
 
 	resp, err := ds.Client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, "")
