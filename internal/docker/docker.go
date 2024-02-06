@@ -12,9 +12,11 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/pkg/utils"
 )
@@ -29,26 +31,37 @@ type ImagePullResponse struct {
 	ID       string `json:"id"`
 }
 
-func NewDockerClient() (*client.Client, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, err
-	}
-	return cli, nil
+// DockerService holds the client used to interact with Docker.
+type DockerService struct {
+	Client DockerClient
+}
+
+// NewDockerService creates a new instance of DockerService with the given DockerClient.
+func NewDockerService(cli DockerClient) *DockerService {
+	return &DockerService{Client: cli}
+}
+
+type DockerClient interface {
+	ImagePull(ctx context.Context, refStr string, options types.ImagePullOptions) (io.ReadCloser, error)
+	ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, platform *ocispec.Platform, containerName string) (container.CreateResponse, error)
+	ContainerStart(ctx context.Context, containerID string, options types.ContainerStartOptions) error
+	ContainerList(ctx context.Context, options types.ContainerListOptions) ([]types.Container, error)
+	ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error)
+	ContainerStop(ctx context.Context, containerID string, options container.StopOptions) error
+	ContainerLogs(ctx context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error)
+	Close() error
+}
+
+func NewDockerClient() (DockerClient, error) {
+	return client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 }
 
 // PullImage is a function that pulls a Docker image from a Docker registry.
 // This is similar to running `docker pull <image>` from the command line.
-func PullImage(imageName string, registryConfig config.RegistryConfig) error {
+func (ds *DockerService) PullImage(imageName string, registryConfig config.RegistryConfig) error {
 	// A context in Go is used to define a deadline or a cancellation signal
 	// for requests made to external resources, like a Docker Daemon in this case.
 	ctx := context.Background()
-
-	// Initialize a new Docker client. It automatically negotiates the API version
-	cli, err := NewDockerClient()
-	if err != nil {
-		return err
-	}
 
 	authConfig := registry.AuthConfig{
 		Username: registryConfig.Username,
@@ -66,7 +79,7 @@ func PullImage(imageName string, registryConfig config.RegistryConfig) error {
 		RegistryAuth: authStr,
 	}
 
-	out, err := cli.ImagePull(ctx, imageName, options)
+	out, err := ds.Client.ImagePull(ctx, imageName, options)
 	if err != nil {
 		return err
 	}
@@ -104,13 +117,8 @@ type Container struct {
 	Port int
 }
 
-func RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, error) {
+func (ds *DockerService) RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, error) {
 	ctx := context.Background()
-
-	cli, err := NewDockerClient()
-	if err != nil {
-		return nil, err
-	}
 
 	portManager := utils.NewPortManager(cfg.App.PortRange.Start, cfg.App.PortRange.End, 1)
 	port, err := portManager.AllocatePort()
@@ -151,12 +159,12 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, er
 		hostConfig.NetworkMode = container.NetworkMode(cfg.App.Network)
 	}
 
-	resp, err := cli.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, "")
+	resp, err := ds.Client.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, "")
 	if err != nil {
 		return nil, err
 	}
 
-	err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
+	err = ds.Client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error allocating port: %w", err)
 	}
@@ -167,16 +175,10 @@ func RunContainer(imageName string, cfg config.DeploymentConfig) (*Container, er
 	}, nil
 }
 
-func FindContainer(imageName string) *Container {
+func (ds *DockerService) FindContainer(imageName string) *Container {
 	ctx := context.Background()
 
-	cli, err := NewDockerClient()
-
-	if err != nil {
-		return nil
-	}
-
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := ds.Client.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
 		return nil
 	}
@@ -185,7 +187,7 @@ func FindContainer(imageName string) *Container {
 
 	for _, container := range containers {
 		// Inspect each container to get detailed information
-		cont, err := cli.ContainerInspect(ctx, container.ID)
+		cont, err := ds.Client.ContainerInspect(ctx, container.ID)
 		if err != nil {
 			continue // Skip to next container on error
 		}
@@ -202,21 +204,17 @@ func FindContainer(imageName string) *Container {
 	return nil
 }
 
-func StopContainer(containerID string) error {
+func (ds *DockerService) StopContainer(containerID string) error {
 	ctx := context.Background()
-	cli, err := NewDockerClient()
-	if err != nil {
-		return err
-	}
 
-	defer cli.Close()
+	defer ds.Client.Close()
 
 	timeout := 15
 	stopOptions := container.StopOptions{
 		Timeout: &timeout,
 	}
 
-	err = cli.ContainerStop(ctx, containerID, stopOptions)
+	err := ds.Client.ContainerStop(ctx, containerID, stopOptions)
 	if err != nil {
 		return err
 	}
@@ -224,14 +222,9 @@ func StopContainer(containerID string) error {
 	return nil
 }
 
-func StreamLogs(container string, tail string) error {
+func (ds *DockerService) StreamLogs(container string, tail string) error {
 	ctx := context.Background()
-	cli, err := NewDockerClient()
-	if err != nil {
-		return err
-	}
-
-	defer cli.Close()
+	defer ds.Client.Close()
 
 	options := types.ContainerLogsOptions{
 		ShowStdout: true,
@@ -241,7 +234,7 @@ func StreamLogs(container string, tail string) error {
 		Details:    true,
 	}
 
-	out, err := cli.ContainerLogs(ctx, container, options)
+	out, err := ds.Client.ContainerLogs(ctx, container, options)
 	if err != nil {
 		return err
 	}
