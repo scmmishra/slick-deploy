@@ -47,6 +47,8 @@ func Deploy(cfg config.DeploymentConfig) error {
 	fmt.Println("- Setting up caddy")
 	err = caddy.SetupCaddy(newContainer.Port, cfg)
 	if err != nil {
+		fmt.Println("Unable to setup caddy, rolling back")
+		dockerService.StopContainer(newContainer.ID)
 		return err
 	}
 
