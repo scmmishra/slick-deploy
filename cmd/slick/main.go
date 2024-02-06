@@ -69,8 +69,17 @@ var logsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// if cfgPath is not preset, use the slick.yml in the current directory
 		cfgPath, _ := cmd.Flags().GetString("config")
-
 		tail, _ := cmd.Flags().GetString("tail")
+
+		// Initialize Docker client
+		cli, err := docker.NewDockerClient()
+		if err != nil {
+			cmd.PrintErrf("Failed to create Docker client: %v", err)
+			os.Exit(1)
+		}
+
+		// Create DockerService instance
+		dockerService := docker.NewDockerService(cli)
 
 		// Load configuration
 		cfg, err := config.LoadConfig(cfgPath)
@@ -79,13 +88,13 @@ var logsCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		container := docker.FindContainer(cfg.App.ImageName)
+		container := dockerService.FindContainer(cfg.App.ImageName)
 		if container == nil {
 			cmd.PrintErrf("No container found")
 			os.Exit(1)
 		}
 
-		docker.StreamLogs(container.ID, tail)
+		dockerService.StreamLogs(container.ID, tail)
 	},
 }
 
