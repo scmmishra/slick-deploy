@@ -47,9 +47,21 @@ type Rule struct {
 	Handle       []Handle       `yaml:"handle"`
 }
 
+type OnDemandTlsConfig struct {
+	Ask      string `yaml:"ask"`
+	Interval string `yaml:"interval"`
+	Burst    string `yaml:"burst"`
+}
+
+type GlobalOptions struct {
+	Email       string            `yaml:"email"`
+	OnDemandTls OnDemandTlsConfig `yaml:"on_demand_tls"`
+}
+
 type CaddyConfig struct {
-	AdminAPI string `yaml:"admin_api"`
-	Rules    []Rule `yaml:"rules"`
+	AdminAPI string        `yaml:"admin_api"`
+	Global   GlobalOptions `yaml:"global"`
+	Rules    []Rule        `yaml:"rules"`
 }
 
 type HealthCheck struct {

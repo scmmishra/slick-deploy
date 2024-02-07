@@ -7,23 +7,45 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/config"
 )
 
-type Rule struct {
-	Match        string         `yaml:"match"`
-	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
-}
+func buildGlobalOptions(globalCfg config.GlobalOptions, port int) string {
+	var globalOptionsBuilder strings.Builder
 
-type ReverseProxy struct {
-	Path string `yaml:"path"`
-	To   string `yaml:"to"`
-}
+	if globalCfg.Email != "" || globalCfg.OnDemandTls.Ask != "" {
+		globalOptionsBuilder.WriteString("{\n")
+		if globalCfg.Email != "" {
+			globalOptionsBuilder.WriteString(fmt.Sprintf("  email %s\n", globalCfg.Email))
+		}
 
-type DataWithPort struct {
-	Port int
+		if globalCfg.OnDemandTls.Ask != "" {
+			var onDemandTlsBuilder strings.Builder
+
+			onDemandTlsBuilder.WriteString("  on_demand_tls {\n")
+			askPath := strings.ReplaceAll(globalCfg.OnDemandTls.Ask, "{port}", fmt.Sprintf("%d", port))
+			onDemandTlsBuilder.WriteString(fmt.Sprintf("    ask %s\n", askPath))
+
+			if globalCfg.OnDemandTls.Interval != "" {
+				onDemandTlsBuilder.WriteString(fmt.Sprintf("    interval %s\n", globalCfg.OnDemandTls.Interval))
+			}
+
+			if globalCfg.OnDemandTls.Burst != "0" {
+				onDemandTlsBuilder.WriteString(fmt.Sprintf("    burst %s\n", globalCfg.OnDemandTls.Burst))
+			}
+
+			onDemandTlsBuilder.WriteString("  }\n")
+			globalOptionsBuilder.WriteString(onDemandTlsBuilder.String())
+		}
+
+		globalOptionsBuilder.WriteString("}\n\n")
+	}
+
+	return globalOptionsBuilder.String()
 }
 
 // ConvertToCaddyfile translates the CaddyConfig struct to a Caddyfile string
 func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) string {
 	var caddyfileBuilder strings.Builder
+
+	caddyfileBuilder.WriteString(buildGlobalOptions(caddyCfg.Global, port))
 
 	for _, rule := range caddyCfg.Rules {
 		caddyfileBuilder.WriteString(rule.Match)
@@ -47,10 +69,9 @@ func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) string {
 
 		for _, proxy := range rule.ReverseProxy {
 			toPath := strings.ReplaceAll(proxy.To, "{port}", fmt.Sprintf("%d", port))
-
 			caddyfileBuilder.WriteString(fmt.Sprintf("  reverse_proxy %s %s\n", proxy.Path, toPath))
 		}
-		caddyfileBuilder.WriteString("}\n")
+		caddyfileBuilder.WriteString("}\n\n")
 	}
 
 	return caddyfileBuilder.String()
@@ -58,7 +79,6 @@ func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) string {
 
 func SetupCaddy(port int, cfg config.DeploymentConfig) error {
 	caddyfile := ConvertToCaddyfile(cfg.Caddy, port)
-
 	client := NewCaddyClient(cfg.Caddy.AdminAPI)
 	err := client.Load(caddyfile)
 
