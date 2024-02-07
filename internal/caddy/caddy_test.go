@@ -2,6 +2,7 @@ package caddy
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/scmmishra/slick-deploy/internal/config"
@@ -15,6 +16,20 @@ func TestConvertToCaddyfile(t *testing.T) {
 			{
 				Match: "localhost",
 				Tls:   "internal",
+				Handle: []config.Handle{
+					{
+						Path: "/",
+						Directives: []string{
+							"root * /usr/share/caddy",
+						},
+					},
+					{
+						Path: "/healthz",
+						Directives: []string{
+							"respond \"OK\" 200",
+						},
+					},
+				},
 				ReverseProxy: []config.ReverseProxy{
 					{
 						Path: "/",
@@ -26,7 +41,8 @@ func TestConvertToCaddyfile(t *testing.T) {
 	}
 
 	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
-	expectedCaddyfile := "localhost {\n  tls {\n    internal\n  }\n  reverse_proxy / http://localhost:8080\n}\n"
+	fmt.Println(caddyfile)
+	expectedCaddyfile := "localhost {\n  tls {\n    internal\n  }\n  handle / {\n    root * /usr/share/caddy\n  }\n  handle /healthz {\n    respond \"OK\" 200\n  }\n  reverse_proxy / http://localhost:8080\n}\n"
 	assert.Equal(t, expectedCaddyfile, caddyfile)
 }
 
