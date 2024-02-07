@@ -70,7 +70,8 @@ func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) string {
 func appendRule(builder *strings.Builder, rule config.Rule, port int) {
 	builder.WriteString(rule.Match + " {\n")
 	if rule.Tls != "" {
-		builder.WriteString(fmt.Sprintf("  tls %s\n", strings.ReplaceAll(rule.Tls, "{port}", fmt.Sprintf("%d", port))))
+		newTls := strings.ReplaceAll(rule.Tls, "{port}", fmt.Sprintf("%d", port))
+		builder.WriteString(fmt.Sprintf("  tls {\n    %s\n  }\n", newTls))
 	}
 
 	for _, handle := range rule.Handle {
