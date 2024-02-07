@@ -48,7 +48,7 @@ func appendOnDemandTlsConfig(builder *strings.Builder, tlsConfig config.OnDemand
 	if tlsConfig.Interval != "" {
 		builder.WriteString(fmt.Sprintf("    interval %s\n", tlsConfig.Interval))
 	}
-	if tlsConfig.Burst != "0" {
+	if tlsConfig.Burst != "" {
 		builder.WriteString(fmt.Sprintf("    burst %s\n", tlsConfig.Burst))
 	}
 	builder.WriteString("  }\n")
