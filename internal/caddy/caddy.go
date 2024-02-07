@@ -28,9 +28,21 @@ func ConvertToCaddyfile(caddyCfg config.CaddyConfig, port int) string {
 	for _, rule := range caddyCfg.Rules {
 		caddyfileBuilder.WriteString(rule.Match)
 		caddyfileBuilder.WriteString(" {\n")
+
 		if rule.Tls != "" {
 			tlsRule := strings.ReplaceAll(rule.Tls, "{port}", fmt.Sprintf("%d", port))
 			caddyfileBuilder.WriteString(fmt.Sprintf("  tls {\n    %s\n  }\n", tlsRule))
+		}
+
+		// check if rule.Handle array is not empty
+		if len(rule.Handle) > 0 {
+			for _, handle := range rule.Handle {
+				caddyfileBuilder.WriteString(fmt.Sprintf("  handle %s {\n", handle.Path))
+				for _, directive := range handle.Directives {
+					caddyfileBuilder.WriteString(fmt.Sprintf("    %s\n", directive))
+				}
+				caddyfileBuilder.WriteString("  }\n")
+			}
 		}
 
 		for _, proxy := range rule.ReverseProxy {

@@ -35,10 +35,16 @@ type ReverseProxy struct {
 	To   string `yaml:"to"`
 }
 
+type Handle struct {
+	Path       string   `yaml:"path"`
+	Directives []string `yaml:"directives"`
+}
+
 type Rule struct {
 	Match        string         `yaml:"match"`
 	Tls          string         `yaml:"tls"`
 	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
+	Handle       []Handle       `yaml:"handle"`
 }
 
 type CaddyConfig struct {
