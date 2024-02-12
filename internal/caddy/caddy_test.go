@@ -41,7 +41,6 @@ func TestConvertToCaddyfile(t *testing.T) {
 	}
 
 	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
-	fmt.Println(caddyfile)
 	expectedCaddyfile := "localhost {\n  tls {\n    internal\n  }\n  handle / {\n    root * /usr/share/caddy\n  }\n  handle /healthz {\n    respond \"OK\" 200\n  }\n  reverse_proxy / http://localhost:8080\n}\n\n"
 	assert.Equal(t, expectedCaddyfile, caddyfile)
 }
