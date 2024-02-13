@@ -95,3 +95,74 @@ func TestDockerService_StreamLogs(t *testing.T) {
 	mockClient.AssertCalled(t, "ContainerLogs", mock.Anything, containerID, mock.AnythingOfType("types.ContainerLogsOptions"))
 	mockClient.AssertExpectations(t)
 }
+
+func TestDockerService_FindContainer(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	imageName := "example/image:latest"
+	// baseImageName := strings.Split(imageName, ":")[0]
+
+	containerID := "container123"
+	containerList := []types.Container{
+		{
+			ID: containerID,
+			Names: []string{
+				"test-container",
+			},
+		},
+	}
+
+	containerJSON := types.ContainerJSON{
+		Config: &container.Config{
+			Image: imageName,
+		},
+	}
+
+	mockClient.On("ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions")).Return(containerList, nil)
+	mockClient.On("ContainerInspect", mock.Anything, containerID).Return(containerJSON, nil)
+
+	container := dockerService.FindContainer(imageName)
+
+	assert.NotNil(t, container)
+	assert.Equal(t, containerID, container.ID)
+
+	mockClient.AssertCalled(t, "ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions"))
+	mockClient.AssertCalled(t, "ContainerInspect", mock.Anything, containerID)
+	mockClient.AssertExpectations(t)
+}
+
+func TestDockerService_FindContainer_NoMatch(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	imageName := "example/image:latest"
+	// baseImageName := strings.Split(imageName, ":")[0]
+
+	containerID := "container123"
+	containerList := []types.Container{
+		{
+			ID: containerID,
+			Names: []string{
+				"test-container",
+			},
+		},
+	}
+
+	containerJSON := types.ContainerJSON{
+		Config: &container.Config{
+			Image: "different/image:latest",
+		},
+	}
+
+	mockClient.On("ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions")).Return(containerList, nil)
+	mockClient.On("ContainerInspect", mock.Anything, containerID).Return(containerJSON, nil)
+
+	container := dockerService.FindContainer(imageName)
+
+	assert.Nil(t, container)
+
+	mockClient.AssertCalled(t, "ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions"))
+	mockClient.AssertCalled(t, "ContainerInspect", mock.Anything, containerID)
+	mockClient.AssertExpectations(t)
+}
