@@ -48,7 +48,7 @@ func TestConvertToCaddyfile(t *testing.T) {
 	}
 
 	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
-	expectedCaddyfile := "{\n  email test@example.com\n  on_demand_tls {\n    ask https://acme.example.com/directory\n  }\n}\n\nlocalhost {\n  tls {\n    internal\n  }\n  handle / {\n    root * /usr/share/caddy\n  }\n  handle /healthz {\n    respond \"OK\" 200\n  }\n  reverse_proxy / http://localhost:8080\n}\n\n"
+	expectedCaddyfile := "{\n  email test@example.com\n  on_demand_tls {\n    ask https://acme.example.com/directory\n    interval 3600\n    burst 13\n  }\n}\n\nlocalhost {\n  tls {\n    internal\n  }\n  handle / {\n    root * /usr/share/caddy\n  }\n  handle /healthz {\n    respond \"OK\" 200\n  }\n  reverse_proxy / http://localhost:8080\n}\n\n"
 	assert.Equal(t, expectedCaddyfile, caddyfile)
 }
 
