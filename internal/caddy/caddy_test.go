@@ -2,7 +2,6 @@ package caddy
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/scmmishra/slick-deploy/internal/config"
