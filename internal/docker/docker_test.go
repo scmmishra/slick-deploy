@@ -141,6 +141,21 @@ func TestDockerService_StreamLogs(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
+func TestDockerService_StreamLogs_Error(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	containerID := "container123"
+	mockClient.On("ContainerLogs", mock.Anything, containerID, mock.AnythingOfType("types.ContainerLogsOptions")).Return(nil, errors.New("mock error"))
+
+	err := dockerService.StreamLogs(containerID, "all")
+	assert.Error(t, err)
+	assert.Equal(t, "mock error", err.Error())
+
+	mockClient.AssertCalled(t, "ContainerLogs", mock.Anything, containerID, mock.AnythingOfType("types.ContainerLogsOptions"))
+	mockClient.AssertExpectations(t)
+}
+
 func TestDockerService_FindContainer(t *testing.T) {
 	mockClient := new(MockDockerClient)
 	dockerService := NewDockerService(mockClient)

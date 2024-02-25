@@ -59,6 +59,9 @@ func (m *MockDockerClient) ContainerStop(ctx context.Context, containerID string
 // ContainerLogs mocks the ContainerLogs method
 func (m *MockDockerClient) ContainerLogs(ctx context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error) {
 	args := m.Called(ctx, container, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
