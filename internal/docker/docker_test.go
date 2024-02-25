@@ -168,3 +168,25 @@ func TestDockerService_FindContainer_NoMatch(t *testing.T) {
 	mockClient.AssertCalled(t, "ContainerInspect", mock.Anything, containerID)
 	mockClient.AssertExpectations(t)
 }
+
+func TestDockerService_GetStatus(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	containerID := "container123"
+	containerList := []types.Container{
+		{
+			ID: containerID,
+			Names: []string{
+				"test-container",
+			},
+		},
+	}
+
+	mockClient.On("ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions")).Return(containerList, nil)
+
+	dockerService.GetStatus()
+
+	mockClient.AssertCalled(t, "ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions"))
+	mockClient.AssertExpectations(t)
+}
