@@ -38,6 +38,9 @@ func (m *MockDockerClient) ContainerStart(ctx context.Context, containerID strin
 // ContainerList mocks the ContainerList method
 func (m *MockDockerClient) ContainerList(ctx context.Context, options types.ContainerListOptions) ([]types.Container, error) {
 	args := m.Called(ctx, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]types.Container), args.Error(1)
 }
 
@@ -56,7 +59,16 @@ func (m *MockDockerClient) ContainerStop(ctx context.Context, containerID string
 // ContainerLogs mocks the ContainerLogs method
 func (m *MockDockerClient) ContainerLogs(ctx context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error) {
 	args := m.Called(ctx, container, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(io.ReadCloser), args.Error(1)
+}
+
+// ContainerRemove mocks the ContainerRemove method
+func (m *MockDockerClient) ContainerRemove(ctx context.Context, containerID string, options types.ContainerRemoveOptions) error {
+	args := m.Called(ctx, containerID, options)
+	return args.Error(0)
 }
 
 // Close is a mock method to simulate closing the Docker client connection

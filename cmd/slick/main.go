@@ -7,7 +7,6 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
 	"github.com/scmmishra/slick-deploy/internal/docker"
-	"github.com/scmmishra/slick-deploy/internal/status"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
@@ -58,7 +57,21 @@ var statusCmd = &cobra.Command{
 	Short: "Get the status of your application",
 	Long:  `The status command shows the status of your application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		status.GetStatus()
+		// Initialize Docker client
+		cli, err := docker.NewDockerClient()
+		if err != nil {
+			cmd.PrintErrf("Failed to create Docker client: %v", err)
+			os.Exit(1)
+		}
+
+		// Create DockerService instance
+		dockerService := docker.NewDockerService(cli)
+
+		err = dockerService.GetStatus()
+		if err != nil {
+			cmd.PrintErrf("Failed to get status: %v", err)
+			os.Exit(1)
+		}
 	},
 }
 

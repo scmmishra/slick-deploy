@@ -9,6 +9,8 @@ import (
 	"io"
 	"os"
 	"strings"
+	"text/tabwriter"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -48,6 +50,7 @@ type DockerClient interface {
 	ContainerList(ctx context.Context, options types.ContainerListOptions) ([]types.Container, error)
 	ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error)
 	ContainerStop(ctx context.Context, containerID string, options container.StopOptions) error
+	ContainerRemove(ctx context.Context, containerID string, options types.ContainerRemoveOptions) error
 	ContainerLogs(ctx context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error)
 	Close() error
 }
@@ -219,6 +222,11 @@ func (ds *DockerService) StopContainer(containerID string) error {
 		return err
 	}
 
+	err = ds.Client.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -263,6 +271,36 @@ func (ds *DockerService) StreamLogs(container string, tail string) error {
 		// Print the log message
 		fmt.Print(message)
 	}
+
+	return nil
+}
+
+func (ds *DockerService) GetStatus() error {
+	containers, err := ds.Client.ContainerList(context.Background(), types.ContainerListOptions{})
+	if err != nil {
+		return err
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	fmt.Fprintln(w, "CONTAINER ID\tIMAGE\tCREATED\tSTATUS\tPORTS\tNAMES")
+
+	for _, container := range containers {
+		ports := ""
+
+		for _, port := range container.Ports {
+			ports += fmt.Sprintf("%s:%d->%d/%s ", port.IP, port.PublicPort, port.PrivatePort, port.Type)
+		}
+
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+			container.ID[:10],
+			container.Image,
+			time.Since(time.Unix(container.Created, 0)),
+			container.State,
+			ports,
+			container.Names)
+	}
+
+	w.Flush()
 
 	return nil
 }
