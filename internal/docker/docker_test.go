@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -180,12 +181,34 @@ func TestDockerService_GetStatus(t *testing.T) {
 			Names: []string{
 				"test-container",
 			},
+			Ports: []types.Port{
+				{
+					IP:          "127.0.0.1",
+					PrivatePort: 8080,
+					PublicPort:  5000,
+					Type:        "tcp",
+				},
+			},
 		},
 	}
 
 	mockClient.On("ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions")).Return(containerList, nil)
 
 	dockerService.GetStatus()
+
+	mockClient.AssertCalled(t, "ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions"))
+	mockClient.AssertExpectations(t)
+}
+
+func TestDockerService_GetStatus_Error(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	mockClient.On("ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions")).Return(nil, errors.New("mock error"))
+
+	err := dockerService.GetStatus()
+	assert.Error(t, err)
+	assert.Equal(t, "mock error", err.Error())
 
 	mockClient.AssertCalled(t, "ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions"))
 	mockClient.AssertExpectations(t)

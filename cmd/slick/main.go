@@ -67,7 +67,11 @@ var statusCmd = &cobra.Command{
 		// Create DockerService instance
 		dockerService := docker.NewDockerService(cli)
 
-		dockerService.GetStatus()
+		err = dockerService.GetStatus()
+		if err != nil {
+			cmd.PrintErrf("Failed to get status: %v", err)
+			os.Exit(1)
+		}
 	},
 }
 

@@ -275,10 +275,10 @@ func (ds *DockerService) StreamLogs(container string, tail string) error {
 	return nil
 }
 
-func (ds *DockerService) GetStatus() {
+func (ds *DockerService) GetStatus() error {
 	containers, err := ds.Client.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
@@ -301,4 +301,6 @@ func (ds *DockerService) GetStatus() {
 	}
 
 	w.Flush()
+
+	return nil
 }

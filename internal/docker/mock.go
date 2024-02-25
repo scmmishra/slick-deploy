@@ -38,6 +38,9 @@ func (m *MockDockerClient) ContainerStart(ctx context.Context, containerID strin
 // ContainerList mocks the ContainerList method
 func (m *MockDockerClient) ContainerList(ctx context.Context, options types.ContainerListOptions) ([]types.Container, error) {
 	args := m.Called(ctx, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]types.Container), args.Error(1)
 }
 
