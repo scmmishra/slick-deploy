@@ -48,6 +48,7 @@ type DockerClient interface {
 	ContainerList(ctx context.Context, options types.ContainerListOptions) ([]types.Container, error)
 	ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error)
 	ContainerStop(ctx context.Context, containerID string, options container.StopOptions) error
+	ContainerRemove(ctx context.Context, containerID string, options types.ContainerRemoveOptions) error
 	ContainerLogs(ctx context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error)
 	Close() error
 }
@@ -215,6 +216,11 @@ func (ds *DockerService) StopContainer(containerID string) error {
 	}
 
 	err := ds.Client.ContainerStop(ctx, containerID, stopOptions)
+	if err != nil {
+		return err
+	}
+
+	err = ds.Client.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{})
 	if err != nil {
 		return err
 	}
