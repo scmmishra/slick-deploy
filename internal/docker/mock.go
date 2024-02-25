@@ -59,6 +59,12 @@ func (m *MockDockerClient) ContainerLogs(ctx context.Context, container string, 
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
+// ContainerRemove mocks the ContainerRemove method
+func (m *MockDockerClient) ContainerRemove(ctx context.Context, containerID string, options types.ContainerRemoveOptions) error {
+	args := m.Called(ctx, containerID, options)
+	return args.Error(0)
+}
+
 // Close is a mock method to simulate closing the Docker client connection
 func (m *MockDockerClient) Close() error {
 	// This can be left empty or implemented if your DockerClient interface requires it

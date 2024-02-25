@@ -71,6 +71,7 @@ func TestDockerService_StopContainer(t *testing.T) {
 	mockClient.On("ContainerStop", mock.Anything, containerID, container.StopOptions{
 		Timeout: &timeout,
 	}).Return(nil)
+	mockClient.On("ContainerRemove", mock.Anything, containerID, types.ContainerRemoveOptions{}).Return(nil)
 
 	err := dockerService.StopContainer(containerID)
 	assert.NoError(t, err)
@@ -78,6 +79,7 @@ func TestDockerService_StopContainer(t *testing.T) {
 	mockClient.AssertCalled(t, "ContainerStop", mock.Anything, containerID, container.StopOptions{
 		Timeout: &timeout,
 	})
+	mockClient.AssertCalled(t, "ContainerRemove", mock.Anything, containerID, types.ContainerRemoveOptions{})
 	mockClient.AssertExpectations(t)
 }
 
