@@ -84,6 +84,48 @@ func TestDockerService_StopContainer(t *testing.T) {
 	mockClient.AssertExpectations(t)
 }
 
+func TestDockerService_StopContainer_StopError(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	containerID := "container123"
+	timeout := 15
+
+	mockClient.On("ContainerStop", mock.Anything, containerID, container.StopOptions{
+		Timeout: &timeout,
+	}).Return(errors.New("stop error"))
+
+	err := dockerService.StopContainer(containerID)
+	assert.Error(t, err)
+
+	mockClient.AssertCalled(t, "ContainerStop", mock.Anything, containerID, container.StopOptions{
+		Timeout: &timeout,
+	})
+	mockClient.AssertExpectations(t)
+}
+
+func TestDockerService_StopContainer_RemoveError(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	containerID := "container123"
+	timeout := 15
+
+	mockClient.On("ContainerStop", mock.Anything, containerID, container.StopOptions{
+		Timeout: &timeout,
+	}).Return(nil)
+	mockClient.On("ContainerRemove", mock.Anything, containerID, types.ContainerRemoveOptions{}).Return(errors.New("remove error"))
+
+	err := dockerService.StopContainer(containerID)
+	assert.Error(t, err)
+
+	mockClient.AssertCalled(t, "ContainerStop", mock.Anything, containerID, container.StopOptions{
+		Timeout: &timeout,
+	})
+	mockClient.AssertCalled(t, "ContainerRemove", mock.Anything, containerID, types.ContainerRemoveOptions{})
+	mockClient.AssertExpectations(t)
+}
+
 func TestDockerService_StreamLogs(t *testing.T) {
 	mockClient := new(MockDockerClient)
 	dockerService := NewDockerService(mockClient)
