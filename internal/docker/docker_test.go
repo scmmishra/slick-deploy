@@ -3,6 +3,7 @@ package docker
 import (
 	"errors"
 	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -41,8 +42,8 @@ func TestDockerService_RunContainer(t *testing.T) {
 		Name:      "test-app",
 		ImageName: "example/image:latest",
 		ENV: []string{
-			"TEST_ENV",
-			"ANOTHER_ENV",
+			"__SLICK_TEST_ENV",
+			"__SLICK_TEST_ENV_NOT_PRESENT",
 		},
 		Network:       "slick-test",
 		ContainerPort: 8080,
@@ -51,6 +52,9 @@ func TestDockerService_RunContainer(t *testing.T) {
 			End:   6000,
 		},
 	}
+
+	os.Setenv("__SLICK_TEST_ENV", "test_value")
+	os.Unsetenv("__SLICK_TEST_ENV_NOT_PRESENT")
 
 	containerID := "container123"
 	mockClient.On("ContainerCreate", mock.Anything, mock.AnythingOfType("*container.Config"), mock.AnythingOfType("*container.HostConfig"), mock.Anything, mock.Anything, "").Return(container.CreateResponse{ID: containerID}, nil)
@@ -61,6 +65,9 @@ func TestDockerService_RunContainer(t *testing.T) {
 	assert.Equal(t, containerID, newContainer.ID)
 
 	mockClient.AssertExpectations(t)
+
+	// Clean up environment variables
+	os.Unsetenv("__SLICK_TEST_ENV")
 }
 
 func TestDockerService_StopContainer(t *testing.T) {
