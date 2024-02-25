@@ -9,6 +9,8 @@ import (
 	"io"
 	"os"
 	"strings"
+	"text/tabwriter"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -271,4 +273,32 @@ func (ds *DockerService) StreamLogs(container string, tail string) error {
 	}
 
 	return nil
+}
+
+func (ds *DockerService) GetStatus() {
+	containers, err := ds.Client.ContainerList(context.Background(), types.ContainerListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	fmt.Fprintln(w, "CONTAINER ID\tIMAGE\tCREATED\tSTATUS\tPORTS\tNAMES")
+
+	for _, container := range containers {
+		ports := ""
+
+		for _, port := range container.Ports {
+			ports += fmt.Sprintf("%s:%d->%d/%s ", port.IP, port.PublicPort, port.PrivatePort, port.Type)
+		}
+
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+			container.ID[:10],
+			container.Image,
+			time.Since(time.Unix(container.Created, 0)),
+			container.State,
+			ports,
+			container.Names)
+	}
+
+	w.Flush()
 }
