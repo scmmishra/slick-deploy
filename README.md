@@ -59,7 +59,6 @@ Before you begin, ensure you have the following installed:
 
 - Docker
 - Caddy
-- Go (1.15 or later)
 
 ### Usage
 
