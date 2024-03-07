@@ -44,7 +44,9 @@ download_from_github() {
   local repo=$1
   local release=$2
   local name=$3
-  local filename=${name}_${release}_${OS}_${ARCH}.tar.gz
+
+  local release_without_prefix=${release#v}
+  local filename=${name}_${release_without_prefix}_${OS}_${ARCH}.tar.gz
   # Construct download URL
   local download_url="https://github.com/${repo}/releases/download/${release}/${filename}"
 
@@ -58,7 +60,6 @@ download_from_github() {
     binary_dir="/usr/local/bin"
   fi
   echo "Installing ${name}"
-  echo filename
   sudo tar -xzvf "${filename}" -C "${binary_dir}" > /dev/null
 
   # Make the binary executable
