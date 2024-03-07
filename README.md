@@ -4,6 +4,9 @@
 <p>
   <img src="./.github/logo-light.svg" alt="SlickDeploy" width="300">
 </p>
+
+  [![DeepSource](https://app.deepsource.com/gh/scmmishra/slick-deploy.svg/?label=code+coverage&show_trend=true&token=Bsp9BiRQD-9Ya1stCaYGzjgv)](https://app.deepsource.com/gh/scmmishra/slick-deploy/)
+
 <br>
 <br>
 
