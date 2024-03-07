@@ -16,6 +16,24 @@ Slick Deploy is a command-line tool designed to facilitate zero-downtime deploym
 > [!WARNING]
 > Slick is not ready for production, but you can give it a shot if you're feeling adventurous
 
+### Installing
+
+To start using Slick Deploy, install it right from the source:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/scmmishra/slick-deploy/main/scripts/install.sh | bash
+```
+
+It will install the latest version of slick in /usr/local/bin/slick. You can use the same script to update the CLI.
+
+To install from source manually, run the following commands:
+
+```bash
+git clone https://github.com/scmmishra/slick-deploy.git
+cd slick-deploy
+make install
+```
+
 ## Features
 
 - Zero-downtime deployment: Update your running application without interrupting service.
@@ -39,16 +57,6 @@ Before you begin, ensure you have the following installed:
 - Docker
 - Caddy
 - Go (1.15 or later)
-
-### Installing
-
-To start using Slick Deploy, install it right from the source:
-
-```bash
-git clone https://github.com/scmmishra/slick-deploy.git
-cd slick-deploy
-make install
-```
 
 ### Usage
 
