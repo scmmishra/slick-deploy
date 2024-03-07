@@ -60,7 +60,7 @@ download_from_github() {
     binary_dir="/usr/local/bin"
   fi
   echo "Installing ${name}"
-  sudo tar -xzvf "${filename}" -C "${binary_dir}" > /dev/null
+  sudo tar -xzvf "${filename}" --exclude='LICENSE' --exclude='README.md' -C "${binary_dir}" &> /dev/null
 
   # Make the binary executable
   sudo chmod +x "${binary_dir}/slick"
