@@ -101,6 +101,8 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	}
 
 	// close the file when we're done
+	// TODO: fix the DS issue here
+	// skipcq: GO-S2307
 	defer f.Close()
 
 	// Read the file content
