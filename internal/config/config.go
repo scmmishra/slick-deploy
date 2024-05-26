@@ -28,6 +28,7 @@ type App struct {
 	Network       string         `yaml:"network"`
 	ENV           []string       `yaml:"env"`
 	PortRange     PortRange      `yaml:"port_range"`
+	Volumes       []string       `yaml:"volumes"`
 }
 
 type ReverseProxy struct {

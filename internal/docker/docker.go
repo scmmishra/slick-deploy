@@ -158,6 +158,10 @@ func (ds *DockerService) RunContainer(imageName string, appCfg config.App) (*Con
 		},
 	}
 
+	if len(appCfg.Volumes) > 0 {
+		hostConfig.Binds = appCfg.Volumes
+	}
+
 	if appCfg.Network != "" {
 		hostConfig.NetworkMode = container.NetworkMode(appCfg.Network)
 	}
