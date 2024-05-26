@@ -277,3 +277,26 @@ func TestDockerService_GetStatus_Error(t *testing.T) {
 	mockClient.AssertCalled(t, "ContainerList", mock.Anything, mock.AnythingOfType("types.ContainerListOptions"))
 	mockClient.AssertExpectations(t)
 }
+
+func TestDockerService_RunContainerWithVolumes(t *testing.T) {
+	mockClient := new(MockDockerClient)
+	dockerService := NewDockerService(mockClient)
+
+	cfg := config.App{
+		Name:      "test-app",
+		ImageName: "example/image:latest",
+		Volumes:   []string{"/data:/data"},
+	}
+
+	containerID := "container123"
+	mockClient.On("ContainerCreate", mock.Anything, mock.AnythingOfType("*container.Config"), mock.AnythingOfType("*container.HostConfig"), mock.Anything, mock.Anything, "").Return(container.CreateResponse{ID: containerID}, nil)
+	mockClient.On("ContainerStart", mock.Anything, containerID, types.ContainerStartOptions{}).Return(nil)
+
+	newContainer, err := dockerService.RunContainer(cfg.ImageName, cfg)
+	assert.NoError(t, err)
+	assert.Equal(t, containerID, newContainer.ID)
+
+	mockClient.AssertCalled(t, "ContainerCreate", mock.Anything, mock.AnythingOfType("*container.Config"), mock.AnythingOfType("*container.HostConfig"), mock.Anything, mock.Anything, "")
+	mockClient.AssertCalled(t, "ContainerStart", mock.Anything, containerID, types.ContainerStartOptions{})
+	mockClient.AssertExpectations(t)
+}

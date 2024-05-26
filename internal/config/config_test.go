@@ -179,3 +179,26 @@ caddy:
 	// Assert that the environment variable in the Caddy rule was replaced correctly
 	assert.Equal(t, "{env.TEST_ENV_VAR}", config.Caddy.Rules[0].Tls)
 }
+
+func TestLocadConfigWithVolumes(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+	_, err = tempFile.WriteString(`
+app:
+  name: "Test App"
+  image: "testapp/image"
+  container_port: 8080
+  volumes:
+    - "/data:/data"
+`)
+
+	require.NoError(t, err)
+
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+	err = tempFile.Close()
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"/data:/data"}, config.App.Volumes)
+}
