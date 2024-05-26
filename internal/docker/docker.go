@@ -236,7 +236,7 @@ func (ds *DockerService) StopContainer(containerID string) error {
 	return nil
 }
 
-func (ds *DockerService) StreamLogs(container string, tail string) error {
+func (ds *DockerService) StreamLogs(container, tail string) error {
 	ctx := context.Background()
 	defer ds.Client.Close()
 
