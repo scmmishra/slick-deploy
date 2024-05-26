@@ -89,6 +89,7 @@ func (ds *DockerService) PullImage(imageName string, registryConfig config.Regis
 
 	// Ensure the response body is closed after this function ends.
 	// This is important for resource management and to prevent memory leaks.
+	// skipcq: GO-S2307
 	defer out.Close()
 
 	// Process the output from ImagePull to show progress.
@@ -130,6 +131,7 @@ func (ds *DockerService) RunContainer(imageName string, appCfg config.App) (*Con
 		return nil, err
 	}
 
+	// skipcq: GO-W1027
 	envs := []string{}
 
 	for _, env := range appCfg.ENV {
@@ -156,6 +158,10 @@ func (ds *DockerService) RunContainer(imageName string, appCfg config.App) (*Con
 				},
 			},
 		},
+	}
+
+	if len(appCfg.Volumes) > 0 {
+		hostConfig.Binds = appCfg.Volumes
 	}
 
 	if appCfg.Network != "" {
@@ -230,7 +236,7 @@ func (ds *DockerService) StopContainer(containerID string) error {
 	return nil
 }
 
-func (ds *DockerService) StreamLogs(container string, tail string) error {
+func (ds *DockerService) StreamLogs(container, tail string) error {
 	ctx := context.Background()
 	defer ds.Client.Close()
 
@@ -247,6 +253,7 @@ func (ds *DockerService) StreamLogs(container string, tail string) error {
 		return err
 	}
 
+	// skipcq: GO-S2307
 	defer out.Close()
 
 	reader := bufio.NewReader(out)

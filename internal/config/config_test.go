@@ -115,8 +115,7 @@ app:
 	require.NoError(t, err)
 
 	// Set the environment variable
-	os.Setenv("TEST_REGISTRY_PASSWORD", "testpassword")
-	defer os.Unsetenv("TEST_REGISTRY_PASSWORD")
+	t.Setenv("TEST_REGISTRY_PASSWORD", "testpassword")
 
 	// Load the configuration from the temporary file
 	config, err := LoadConfig(tempFile.Name())
@@ -144,8 +143,7 @@ caddy:
 	require.NoError(t, err)
 
 	// Set the environment variable that we're using in the config file
-	os.Setenv("TEST_ENV_VAR", "test value")
-	defer os.Unsetenv("TEST_ENV_VAR") // clean up after the test
+	t.Setenv("TEST_ENV_VAR", "test value")
 
 	// Load the configuration from the temporary file
 	config, err := LoadConfig(tempFile.Name())
@@ -178,4 +176,27 @@ caddy:
 
 	// Assert that the environment variable in the Caddy rule was replaced correctly
 	assert.Equal(t, "{env.TEST_ENV_VAR}", config.Caddy.Rules[0].Tls)
+}
+
+func TestLocadConfigWithVolumes(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "*.yaml")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+	_, err = tempFile.WriteString(`
+app:
+  name: "Test App"
+  image: "testapp/image"
+  container_port: 8080
+  volumes:
+    - "/data:/data"
+`)
+
+	require.NoError(t, err)
+
+	config, err := LoadConfig(tempFile.Name())
+	require.NoError(t, err)
+	err = tempFile.Close()
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"/data:/data"}, config.App.Volumes)
 }

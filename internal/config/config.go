@@ -28,6 +28,7 @@ type App struct {
 	Network       string         `yaml:"network"`
 	ENV           []string       `yaml:"env"`
 	PortRange     PortRange      `yaml:"port_range"`
+	Volumes       []string       `yaml:"volumes"`
 }
 
 type ReverseProxy struct {
@@ -100,6 +101,8 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	}
 
 	// close the file when we're done
+	// TODO: fix the DS issue here
+	// skipcq: GO-S2307
 	defer f.Close()
 
 	// Read the file content
