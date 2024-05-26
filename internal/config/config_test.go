@@ -115,8 +115,7 @@ app:
 	require.NoError(t, err)
 
 	// Set the environment variable
-	os.Setenv("TEST_REGISTRY_PASSWORD", "testpassword")
-	defer os.Unsetenv("TEST_REGISTRY_PASSWORD")
+	t.Setenv("TEST_REGISTRY_PASSWORD", "testpassword")
 
 	// Load the configuration from the temporary file
 	config, err := LoadConfig(tempFile.Name())
