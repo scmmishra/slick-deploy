@@ -5,7 +5,7 @@
   <img src="./.github/logo-light.svg" alt="SlickDeploy" width="300">
 </p>
 
-  [![DeepSource](https://app.deepsource.com/gh/scmmishra/slick-deploy.svg/?label=code+coverage&show_trend=true&token=Bsp9BiRQD-9Ya1stCaYGzjgv)](https://app.deepsource.com/gh/scmmishra/slick-deploy/)
+[![DeepSource](https://app.deepsource.com/gh/scmmishra/slick-deploy.svg/?label=code+coverage&show_trend=true&token=Bsp9BiRQD-9Ya1stCaYGzjgv)](https://app.deepsource.com/gh/scmmishra/slick-deploy/)
 
 <br>
 <br>
@@ -101,6 +101,8 @@ app:
     - AWS_S3_ENDPOINT_URL
     - AWS_S3_REGION_NAME
     - AWS_S3_SECRET_ACCESS_KEY
+  volumes:
+    - "/data:/data"
   port_range:
     start: 8000
     end: 9000
