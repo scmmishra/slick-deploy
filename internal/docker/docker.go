@@ -89,6 +89,7 @@ func (ds *DockerService) PullImage(imageName string, registryConfig config.Regis
 
 	// Ensure the response body is closed after this function ends.
 	// This is important for resource management and to prevent memory leaks.
+	// skipcq: GO-S2307
 	defer out.Close()
 
 	// Process the output from ImagePull to show progress.
@@ -130,6 +131,7 @@ func (ds *DockerService) RunContainer(imageName string, appCfg config.App) (*Con
 		return nil, err
 	}
 
+	// skipcq: GO-W1027
 	envs := []string{}
 
 	for _, env := range appCfg.ENV {
@@ -250,6 +252,7 @@ func (ds *DockerService) StreamLogs(container string, tail string) error {
 	if err != nil {
 		return err
 	}
+	// skipcq: GO-S2307
 
 	defer out.Close()
 
