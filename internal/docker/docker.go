@@ -252,8 +252,8 @@ func (ds *DockerService) StreamLogs(container, tail string) error {
 	if err != nil {
 		return err
 	}
-	// skipcq: GO-S2307
 
+	// skipcq: GO-S2307
 	defer out.Close()
 
 	reader := bufio.NewReader(out)
