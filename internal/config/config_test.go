@@ -143,8 +143,7 @@ caddy:
 	require.NoError(t, err)
 
 	// Set the environment variable that we're using in the config file
-	os.Setenv("TEST_ENV_VAR", "test value")
-	defer os.Unsetenv("TEST_ENV_VAR") // clean up after the test
+	t.Setenv("TEST_ENV_VAR", "test value")
 
 	// Load the configuration from the temporary file
 	config, err := LoadConfig(tempFile.Name())
