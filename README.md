@@ -1,9 +1,9 @@
 <div align="center">
 <br>
 <br>
-<p>
-  <img src="./.github/logo.png" alt="SlickDeploy" width="300">
-</p>
+<h1>
+  <img src="./.github/logo.png" alt="SlickDeploy" width="30"> Slick Deploy
+</h1>
 
 [![DeepSource](https://app.deepsource.com/gh/scmmishra/slick-deploy.svg/?label=code+coverage&show_trend=true&token=Bsp9BiRQD-9Ya1stCaYGzjgv)](https://app.deepsource.com/gh/scmmishra/slick-deploy/)
 
