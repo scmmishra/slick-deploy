@@ -102,7 +102,7 @@ app:
     - AWS_S3_REGION_NAME
     - AWS_S3_SECRET_ACCESS_KEY
   volumes:
-    - "/data:/data"
+    - "my_volume:/data"
   port_range:
     start: 8000
     end: 9000
