@@ -24,7 +24,7 @@ Slick Deploy is a command-line tool designed to facilitate zero-downtime deploym
 To start using Slick Deploy, install it using this one-line command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/scmmishra/slick-deploy/main/scripts/install.sh | bash
+curl -fsSL https://dub.sh/install-slick | bash
 ```
 
 It will install the latest version of slick in /usr/local/bin/slick. You can use the same script to update the CLI.
