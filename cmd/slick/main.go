@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
 	"github.com/scmmishra/slick-deploy/internal/docker"
@@ -111,6 +112,25 @@ var logsCmd = &cobra.Command{
 	},
 }
 
+var caddyInspectCmd = &cobra.Command{
+	Use:   "caddy-inspect",
+	Short: "Inspect the current Caddy configuration",
+	Long:  `The caddy-inspect command retrieves and displays the current Caddy configuration.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		cfgPath, _ := cmd.Flags().GetString("config")
+
+		// Load configuration
+		cfg, err := config.LoadConfig(cfgPath)
+		if err != nil {
+			cmd.PrintErrf("Failed to load config: %v", err)
+			os.Exit(1)
+		}
+
+		caddyConfig := caddy.ConvertToCaddyfile(cfg.Caddy, 0) // Use 0 as port since we're just inspecting
+		fmt.Println(caddyConfig)
+	},
+}
+
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -132,6 +152,9 @@ func init() {
 	logsCmd.Flags().StringP("config", "c", "slick.yml", "Path to the configuration file")
 	logsCmd.Flags().StringP("tail", "t", "all", "Tail logs")
 	rootCmd.AddCommand(logsCmd)
+
+	caddyInspectCmd.Flags().StringP("config", "c", "slick.yml", "Path to the configuration file")
+	rootCmd.AddCommand(caddyInspectCmd)
 }
 
 func main() {
