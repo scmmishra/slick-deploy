@@ -43,12 +43,18 @@ func TestConvertToCaddyfile(t *testing.T) {
 						To:   "http://localhost:{port}",
 					},
 				},
+				HeaderUp: []config.HeaderUp{
+					{
+						Name:  "X-Real-IP",
+						Value: "{http.request.remote.host}",
+					},
+				},
 			},
 		},
 	}
 
 	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
-	expectedCaddyfile := "{\n  email test@example.com\n  on_demand_tls {\n    ask https://acme.example.com/directory\n    interval 3600\n    burst 13\n  }\n}\n\nlocalhost {\n  tls {\n    internal\n  }\n  handle / {\n    root * /usr/share/caddy\n  }\n  handle /healthz {\n    respond \"OK\" 200\n  }\n  reverse_proxy / http://localhost:8080\n}\n\n"
+	expectedCaddyfile := "{\n  email test@example.com\n  on_demand_tls {\n    ask https://acme.example.com/directory\n    interval 3600\n    burst 13\n  }\n}\n\nlocalhost {\n  tls {\n    internal\n  }\n  header_up X-Real-IP {http.request.remote.host}\n  handle / {\n    root * /usr/share/caddy\n  }\n  handle /healthz {\n    respond \"OK\" 200\n  }\n  reverse_proxy / http://localhost:8080\n}\n\n"
 	assert.Equal(t, expectedCaddyfile, caddyfile)
 }
 
