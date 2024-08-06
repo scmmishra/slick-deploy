@@ -2,6 +2,7 @@ package caddy
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/scmmishra/slick-deploy/internal/config"
@@ -41,12 +42,12 @@ func TestConvertToCaddyfile(t *testing.T) {
 					{
 						Path: "/",
 						To:   "http://localhost:{port}",
-					},
-				},
-				HeaderUp: []config.HeaderUp{
-					{
-						Name:  "X-Real-IP",
-						Value: "{http.request.remote.host}",
+						HeaderUp: []config.HeaderUp{
+							{
+								Name:  "X-Real-IP",
+								Value: "{http.request.remote.host}",
+							},
+						},
 					},
 				},
 			},
@@ -54,7 +55,32 @@ func TestConvertToCaddyfile(t *testing.T) {
 	}
 
 	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
-	expectedCaddyfile := "{\n  email test@example.com\n  on_demand_tls {\n    ask https://acme.example.com/directory\n    interval 3600\n    burst 13\n  }\n}\n\nlocalhost {\n  tls {\n    internal\n  }\n  header_up X-Real-IP {http.request.remote.host}\n  handle / {\n    root * /usr/share/caddy\n  }\n  handle /healthz {\n    respond \"OK\" 200\n  }\n  reverse_proxy / http://localhost:8080\n}\n\n"
+	fmt.Println(caddyfile)
+	expectedCaddyfile := `{
+  email test@example.com
+  on_demand_tls {
+    ask https://acme.example.com/directory
+    interval 3600
+    burst 13
+  }
+}
+
+localhost {
+  tls {
+    internal
+  }
+  handle / {
+    root * /usr/share/caddy
+  }
+  handle /healthz {
+    respond "OK" 200
+  }
+  reverse_proxy / http://localhost:8080 {
+    header_up X-Real-IP {http.request.remote.host}
+  }
+}
+
+`
 	assert.Equal(t, expectedCaddyfile, caddyfile)
 }
 
