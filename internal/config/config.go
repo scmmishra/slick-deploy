@@ -41,11 +41,17 @@ type Handle struct {
 	Directives []string `yaml:"directives"`
 }
 
+type HeaderUp struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
+
 type Rule struct {
 	Match        string         `yaml:"match"`
 	Tls          string         `yaml:"tls"`
 	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
 	Handle       []Handle       `yaml:"handle"`
+	HeaderUp     []HeaderUp     `yaml:"header_up"`
 }
 
 type OnDemandTlsConfig struct {

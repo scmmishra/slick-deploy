@@ -74,6 +74,11 @@ func appendRule(builder *strings.Builder, rule config.Rule, port int) {
 		builder.WriteString(fmt.Sprintf("  tls {\n    %s\n  }\n", newTls))
 	}
 
+	// Add header_up directives
+	for _, header := range rule.HeaderUp {
+		builder.WriteString(fmt.Sprintf("  header_up %s %s\n", header.Name, header.Value))
+	}
+
 	for _, handle := range rule.Handle {
 		builder.WriteString(fmt.Sprintf("  handle %s {\n", handle.Path))
 		for _, directive := range handle.Directives {
