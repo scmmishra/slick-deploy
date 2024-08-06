@@ -7,18 +7,6 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/config"
 )
 
-// Rule defines a routing rule with a match pattern and reverse proxy settings.
-type Rule struct {
-	Match        string         `yaml:"match"`
-	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
-}
-
-// ReverseProxy specifies the reverse proxy configuration.
-type ReverseProxy struct {
-	Path string `yaml:"path"`
-	To   string `yaml:"to"`
-}
-
 // buildGlobalOptions formats global options for the Caddyfile.
 func buildGlobalOptions(globalCfg config.GlobalOptions, port int) string {
 	var builder strings.Builder
@@ -74,11 +62,6 @@ func appendRule(builder *strings.Builder, rule config.Rule, port int) {
 		builder.WriteString(fmt.Sprintf("  tls {\n    %s\n  }\n", newTls))
 	}
 
-	// Add header_up directives
-	for _, header := range rule.HeaderUp {
-		builder.WriteString(fmt.Sprintf("  header_up %s %s\n", header.Name, header.Value))
-	}
-
 	for _, handle := range rule.Handle {
 		builder.WriteString(fmt.Sprintf("  handle %s {\n", handle.Path))
 		for _, directive := range handle.Directives {
@@ -89,7 +72,11 @@ func appendRule(builder *strings.Builder, rule config.Rule, port int) {
 
 	for _, proxy := range rule.ReverseProxy {
 		toPath := strings.ReplaceAll(proxy.To, "{port}", fmt.Sprintf("%d", port))
-		builder.WriteString(fmt.Sprintf("  reverse_proxy %s %s\n", proxy.Path, toPath))
+		builder.WriteString(fmt.Sprintf("  reverse_proxy %s %s {\n", proxy.Path, toPath))
+		for _, header := range proxy.HeaderUp {
+			builder.WriteString(fmt.Sprintf("    header_up %s %s\n", header.Name, header.Value))
+		}
+		builder.WriteString("  }\n")
 	}
 	builder.WriteString("}\n\n")
 }

@@ -32,8 +32,9 @@ type App struct {
 }
 
 type ReverseProxy struct {
-	Path string `yaml:"path"`
-	To   string `yaml:"to"`
+	Path     string     `yaml:"path"`
+	To       string     `yaml:"to"`
+	HeaderUp []HeaderUp `yaml:"header_up"`
 }
 
 type Handle struct {
@@ -51,7 +52,6 @@ type Rule struct {
 	Tls          string         `yaml:"tls"`
 	ReverseProxy []ReverseProxy `yaml:"reverse_proxy"`
 	Handle       []Handle       `yaml:"handle"`
-	HeaderUp     []HeaderUp     `yaml:"header_up"`
 }
 
 type OnDemandTlsConfig struct {
