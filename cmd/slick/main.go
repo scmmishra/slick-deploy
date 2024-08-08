@@ -24,21 +24,27 @@ var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy your application with zero downtime",
 	Long:  "The deploy command starts a new deployment process ensuring that your application is updated with no service interruption.",
-	RunE:  runDeploy,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runDeploy(cmd, args, defaultDeployer)
+	},
 }
 
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Get the status of your application",
 	Long:  "The status command shows the status of your application.",
-	RunE:  runStatus,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runStatus(cmd, args, defaultDockerServiceCreator)
+	},
 }
 
 var logsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Tail and follow app logs",
 	Long:  "The logs command shows the logs output of your application. It is similar to running 'docker logs -f <container-id>'",
-	RunE:  runLogs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runLogs(cmd, args, defaultDockerServiceCreator)
+	},
 }
 
 var caddyInspectCmd = &cobra.Command{

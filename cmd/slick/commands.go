@@ -11,29 +11,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func runDeploy(cmd *cobra.Command, args []string) error {
+type Deployer interface {
+	Deploy(cfg config.DeploymentConfig) error
+}
+
+// DefaultDeployer implements the Deployer interface
+type DefaultDeployer struct{}
+
+func (d DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
+	return deploy.Deploy(cfg)
+}
+
+type DockerServiceCreator func() (*docker.DockerService, error)
+
+var (
+	defaultDeployer             Deployer             = DefaultDeployer{}
+	defaultDockerServiceCreator DockerServiceCreator = newDockerService
+)
+
+func runDeploy(cmd *cobra.Command, args []string, deployer Deployer) error {
 	cfg, err := loadConfig(cmd)
 	if err != nil {
 		return err
 	}
-	return deploy.Deploy(cfg)
+	return deployer.Deploy(cfg)
 }
 
-func runStatus(cmd *cobra.Command, args []string) error {
-	dockerService, err := newDockerService()
+func runStatus(cmd *cobra.Command, args []string, dockerServiceCreator DockerServiceCreator) error {
+	dockerService, err := dockerServiceCreator()
 	if err != nil {
 		return err
 	}
 	return dockerService.GetStatus()
 }
 
-func runLogs(cmd *cobra.Command, args []string) error {
+func runLogs(cmd *cobra.Command, args []string, dockerServiceCreator DockerServiceCreator) error {
 	cfg, err := loadConfig(cmd)
 	if err != nil {
 		return err
 	}
 
-	dockerService, err := newDockerService()
+	dockerService, err := dockerServiceCreator()
 	if err != nil {
 		return err
 	}
