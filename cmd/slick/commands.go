@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/joho/godotenv"
 	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
@@ -34,8 +33,6 @@ func (d DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
 }
 
 var defaultDeployer Deployer = DefaultDeployer{}
-
-type ConfigLoader func(*cobra.Command) (config.DeploymentConfig, error)
 
 func runDeploy(cmd *cobra.Command, deployer Deployer, configLoader ConfigLoader) error {
 	cfg, err := configLoader(cmd)
@@ -82,22 +79,6 @@ func runCaddyInspect(cmd *cobra.Command, configLoader ConfigLoader) error {
 	caddyConfig := caddy.ConvertToCaddyfile(cfg.Caddy, 0) // Use 0 as port since we're just inspecting
 	fmt.Println(caddyConfig)
 	return nil
-}
-
-func defaultConfigLoader(cmd *cobra.Command) (config.DeploymentConfig, error) {
-	cfgPath, _ := cmd.Flags().GetString("config")
-	envPath, _ := cmd.Flags().GetString("env")
-
-	if err := godotenv.Load(envPath); err != nil {
-		return config.DeploymentConfig{}, fmt.Errorf("failed to load env file: %w", err)
-	}
-
-	cfg, err := config.LoadConfig(cfgPath)
-	if err != nil {
-		return config.DeploymentConfig{}, fmt.Errorf("failed to load config: %w", err)
-	}
-
-	return cfg, nil
 }
 
 type DockerClientCreator func() (docker.DockerClient, error)
