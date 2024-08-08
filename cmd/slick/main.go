@@ -47,7 +47,7 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Get the status of your application",
 	Long:  "The status command shows the status of your application.",
-	RunE: func(_ *cobra.Command, __ []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		return cmdFunctions.RunStatus()
 	},
 }
