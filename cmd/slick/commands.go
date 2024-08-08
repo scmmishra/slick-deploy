@@ -6,26 +6,12 @@ import (
 	"github.com/scmmishra/slick-deploy/internal/caddy"
 	"github.com/scmmishra/slick-deploy/internal/config"
 	"github.com/scmmishra/slick-deploy/internal/deploy"
-	"github.com/scmmishra/slick-deploy/internal/docker"
 	"github.com/spf13/cobra"
 )
 
 type Deployer interface {
 	Deploy(cfg config.DeploymentConfig) error
 }
-
-type DockerService interface {
-	GetStatus() error
-	FindContainer(imageName string) *docker.Container
-	StreamLogs(containerID string, tail string) error
-}
-
-type DockerServiceCreator func() (DockerService, error)
-
-var dockerServiceCreator DockerServiceCreator = func() (DockerService, error) {
-	return newDockerService(docker.NewDockerClient)
-}
-
 type DefaultDeployer struct{}
 
 func (d DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
@@ -79,14 +65,4 @@ func runCaddyInspect(cmd *cobra.Command, configLoader ConfigLoader) error {
 	caddyConfig := caddy.ConvertToCaddyfile(cfg.Caddy, 0) // Use 0 as port since we're just inspecting
 	fmt.Println(caddyConfig)
 	return nil
-}
-
-type DockerClientCreator func() (docker.DockerClient, error)
-
-func newDockerService(clientCreator DockerClientCreator) (DockerService, error) {
-	cli, err := clientCreator()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Docker client: %w", err)
-	}
-	return docker.NewDockerService(cli), nil
 }

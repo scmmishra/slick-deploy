@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"testing"
 
@@ -143,15 +142,4 @@ func TestRunStatus(t *testing.T) {
 
 	assert.NoError(t, err)
 	mockDockerService.AssertExpectations(t)
-}
-
-func TestNewDockerService(t *testing.T) {
-	mockClientCreator := func() (docker.DockerClient, error) {
-		return nil, errors.New("test error")
-	}
-
-	_, err := newDockerService(mockClientCreator)
-
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to create Docker client")
 }
