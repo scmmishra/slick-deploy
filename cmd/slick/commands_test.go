@@ -41,7 +41,7 @@ func (m *MockDockerService) FindContainer(imageName string) *docker.Container {
 	return args.Get(0).(*docker.Container)
 }
 
-func (m *MockDockerService) StreamLogs(containerID string, tail string) error {
+func (m *MockDockerService) StreamLogs(containerID, tail string) error {
 	args := m.Called(containerID, tail)
 	return args.Error(0)
 }
