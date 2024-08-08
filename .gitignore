@@ -29,3 +29,5 @@ tmp/
 dist/
 
 .env
+
+coverage.html
