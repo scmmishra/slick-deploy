@@ -15,7 +15,7 @@ type Deployer interface {
 
 type DefaultDeployer struct{}
 
-func (_ DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
+func (DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
 	return deploy.Deploy(cfg)
 }
 
