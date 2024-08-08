@@ -9,6 +9,7 @@ import (
 )
 
 type ConfigLoader func(*cobra.Command) (config.DeploymentConfig, error)
+
 func defaultConfigLoader(cmd *cobra.Command) (config.DeploymentConfig, error) {
 	cfgPath, _ := cmd.Flags().GetString("config")
 	envPath, _ := cmd.Flags().GetString("env")
