@@ -135,6 +135,52 @@ func TestRunLogs_NoContainer(t *testing.T) {
 	mockDockerService.AssertExpectations(t)
 }
 
+func TestRunLogs_DockerServiceCreatorFails(t *testing.T) {
+	mockConfigLoader := func(*cobra.Command) (config.DeploymentConfig, error) {
+		return config.DeploymentConfig{
+			App: config.App{ImageName: "test-image"},
+		}, nil
+	}
+
+	originalDockerServiceCreator := dockerServiceCreator
+	dockerServiceCreator = func() (DockerService, error) {
+		return nil, errors.New("failed to create Docker service")
+	}
+	defer func() { dockerServiceCreator = originalDockerServiceCreator }()
+
+	cmd := createTestCommand()
+	cmd.Flags().String("tail", "all", "")
+	err := runLogs(cmd, mockConfigLoader)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to create Docker service")
+}
+
+func TestRunLogs_ConfigLoaderFails(t *testing.T) {
+	mockConfigLoader := func(*cobra.Command) (config.DeploymentConfig, error) {
+		return config.DeploymentConfig{}, errors.New("config loading failed")
+	}
+
+	mockDockerService := new(MockDockerService)
+
+	originalDockerServiceCreator := dockerServiceCreator
+	dockerServiceCreator = func() (DockerService, error) {
+		return mockDockerService, nil
+	}
+	defer func() { dockerServiceCreator = originalDockerServiceCreator }()
+
+	cmd := createTestCommand()
+	cmd.Flags().String("tail", "all", "")
+	err := runLogs(cmd, mockConfigLoader)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "config loading failed")
+
+	// Ensure that no methods on mockDockerService were called
+	mockDockerService.AssertNotCalled(t, "FindContainer")
+	mockDockerService.AssertNotCalled(t, "StreamLogs")
+}
+
 func TestRunCaddyInspect(t *testing.T) {
 	mockConfigLoader := func(*cobra.Command) (config.DeploymentConfig, error) {
 		return config.DeploymentConfig{
@@ -214,4 +260,17 @@ func TestRunStatus_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "status error")
 	mockDockerService.AssertExpectations(t)
+}
+
+func TestRunStatus_DockerServiceCreatorFails(t *testing.T) {
+	originalDockerServiceCreator := dockerServiceCreator
+	dockerServiceCreator = func() (DockerService, error) {
+		return nil, errors.New("failed to create Docker service")
+	}
+	defer func() { dockerServiceCreator = originalDockerServiceCreator }()
+
+	err := runStatus()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to create Docker service")
 }
