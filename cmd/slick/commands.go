@@ -15,6 +15,8 @@ type Deployer interface {
 	Deploy(cfg config.DeploymentConfig) error
 }
 
+type DockerServiceCreator func() (*docker.DockerService, error)
+
 // DefaultDeployer implements the Deployer interface
 type DefaultDeployer struct{}
 
@@ -22,11 +24,9 @@ func (d DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
 	return deploy.Deploy(cfg)
 }
 
-type DockerServiceCreator func() (*docker.DockerService, error)
-
 var (
-	defaultDeployer             Deployer             = DefaultDeployer{}
-	defaultDockerServiceCreator DockerServiceCreator = newDockerService
+	defaultDeployer      Deployer             = DefaultDeployer{}
+	dockerServiceCreator DockerServiceCreator = newDockerService
 )
 
 func runDeploy(cmd *cobra.Command, args []string, deployer Deployer) error {
@@ -37,7 +37,7 @@ func runDeploy(cmd *cobra.Command, args []string, deployer Deployer) error {
 	return deployer.Deploy(cfg)
 }
 
-func runStatus(cmd *cobra.Command, args []string, dockerServiceCreator DockerServiceCreator) error {
+func runStatus(cmd *cobra.Command, args []string) error {
 	dockerService, err := dockerServiceCreator()
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func runStatus(cmd *cobra.Command, args []string, dockerServiceCreator DockerSer
 	return dockerService.GetStatus()
 }
 
-func runLogs(cmd *cobra.Command, args []string, dockerServiceCreator DockerServiceCreator) error {
+func runLogs(cmd *cobra.Command, args []string) error {
 	cfg, err := loadConfig(cmd)
 	if err != nil {
 		return err
