@@ -15,22 +15,30 @@ type Deployer interface {
 	Deploy(cfg config.DeploymentConfig) error
 }
 
-type DockerServiceCreator func() (*docker.DockerService, error)
+type DockerService interface {
+	GetStatus() error
+	FindContainer(imageName string) *docker.Container
+	StreamLogs(containerID string, tail string) error
+}
 
-// DefaultDeployer implements the Deployer interface
+type DockerServiceCreator func() (DockerService, error)
+
+var dockerServiceCreator DockerServiceCreator = func() (DockerService, error) {
+	return newDockerService(docker.NewDockerClient)
+}
+
 type DefaultDeployer struct{}
 
 func (d DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
 	return deploy.Deploy(cfg)
 }
 
-var (
-	defaultDeployer      Deployer             = DefaultDeployer{}
-	dockerServiceCreator DockerServiceCreator = newDockerService
-)
+var defaultDeployer Deployer = DefaultDeployer{}
 
-func runDeploy(cmd *cobra.Command, args []string, deployer Deployer) error {
-	cfg, err := loadConfig(cmd)
+type ConfigLoader func(*cobra.Command) (config.DeploymentConfig, error)
+
+func runDeploy(cmd *cobra.Command, deployer Deployer, configLoader ConfigLoader) error {
+	cfg, err := configLoader(cmd)
 	if err != nil {
 		return err
 	}
@@ -45,8 +53,8 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	return dockerService.GetStatus()
 }
 
-func runLogs(cmd *cobra.Command, args []string) error {
-	cfg, err := loadConfig(cmd)
+func runLogs(cmd *cobra.Command, args []string, configLoader ConfigLoader) error {
+	cfg, err := configLoader(cmd)
 	if err != nil {
 		return err
 	}
@@ -65,8 +73,8 @@ func runLogs(cmd *cobra.Command, args []string) error {
 	return dockerService.StreamLogs(container.ID, tail)
 }
 
-func runCaddyInspect(cmd *cobra.Command, args []string) error {
-	cfg, err := loadConfig(cmd)
+func runCaddyInspect(cmd *cobra.Command, args []string, configLoader ConfigLoader) error {
+	cfg, err := configLoader(cmd)
 	if err != nil {
 		return err
 	}
@@ -76,7 +84,7 @@ func runCaddyInspect(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func loadConfig(cmd *cobra.Command) (config.DeploymentConfig, error) {
+func defaultConfigLoader(cmd *cobra.Command) (config.DeploymentConfig, error) {
 	cfgPath, _ := cmd.Flags().GetString("config")
 	envPath, _ := cmd.Flags().GetString("env")
 
@@ -92,8 +100,10 @@ func loadConfig(cmd *cobra.Command) (config.DeploymentConfig, error) {
 	return cfg, nil
 }
 
-func newDockerService() (*docker.DockerService, error) {
-	cli, err := docker.NewDockerClient()
+type DockerClientCreator func() (docker.DockerClient, error)
+
+func newDockerService(clientCreator DockerClientCreator) (DockerService, error) {
+	cli, err := clientCreator()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Docker client: %w", err)
 	}
