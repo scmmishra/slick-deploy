@@ -2,7 +2,6 @@ package caddy
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/scmmishra/slick-deploy/internal/config"
@@ -55,7 +54,7 @@ func TestConvertToCaddyfile(t *testing.T) {
 	}
 
 	caddyfile := ConvertToCaddyfile(caddyCfg, 8080)
-	fmt.Println(caddyfile)
+
 	expectedCaddyfile := `{
   email test@example.com
   on_demand_tls {
