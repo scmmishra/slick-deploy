@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"testing"
 
@@ -34,6 +35,9 @@ func (m *MockDockerService) GetStatus() error {
 
 func (m *MockDockerService) FindContainer(imageName string) *docker.Container {
 	args := m.Called(imageName)
+	if args.Get(0) == nil {
+		return nil
+	}
 	return args.Get(0).(*docker.Container)
 }
 
@@ -67,6 +71,20 @@ func TestRunDeploy(t *testing.T) {
 	mockDeployer.AssertExpectations(t)
 }
 
+func TestRunDeploy_ConfigLoaderError(t *testing.T) {
+	mockDeployer := new(MockDeployer)
+	mockConfigLoader := func(*cobra.Command) (config.DeploymentConfig, error) {
+		return config.DeploymentConfig{}, errors.New("config load error")
+	}
+
+	cmd := createTestCommand()
+	err := runDeploy(cmd, mockDeployer, mockConfigLoader)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "config load error")
+	mockDeployer.AssertNotCalled(t, "Deploy")
+}
+
 func TestRunLogs(t *testing.T) {
 	mockDockerService := new(MockDockerService)
 	mockDockerService.On("FindContainer", mock.Anything).Return(&docker.Container{ID: "test-container"})
@@ -89,6 +107,31 @@ func TestRunLogs(t *testing.T) {
 	err := runLogs(cmd, mockConfigLoader)
 
 	assert.NoError(t, err)
+	mockDockerService.AssertExpectations(t)
+}
+
+func TestRunLogs_NoContainer(t *testing.T) {
+	mockDockerService := new(MockDockerService)
+	mockDockerService.On("FindContainer", mock.Anything).Return(nil)
+
+	mockConfigLoader := func(*cobra.Command) (config.DeploymentConfig, error) {
+		return config.DeploymentConfig{
+			App: config.App{ImageName: "test-image"},
+		}, nil
+	}
+
+	originalDockerServiceCreator := dockerServiceCreator
+	dockerServiceCreator = func() (DockerService, error) {
+		return mockDockerService, nil
+	}
+	defer func() { dockerServiceCreator = originalDockerServiceCreator }()
+
+	cmd := createTestCommand()
+	cmd.Flags().String("tail", "all", "")
+	err := runLogs(cmd, mockConfigLoader)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no container found")
 	mockDockerService.AssertExpectations(t)
 }
 
@@ -121,6 +164,18 @@ func TestRunCaddyInspect(t *testing.T) {
 	assert.Contains(t, output, "http://")
 }
 
+func TestRunCaddyInspect_ConfigError(t *testing.T) {
+	mockConfigLoader := func(*cobra.Command) (config.DeploymentConfig, error) {
+		return config.DeploymentConfig{}, errors.New("config load error")
+	}
+
+	cmd := createTestCommand()
+	err := runCaddyInspect(cmd, mockConfigLoader)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "config load error")
+}
+
 func TestRunStatus(t *testing.T) {
 	mockDockerService := new(MockDockerService)
 	mockDockerService.On("GetStatus").Return(nil)
@@ -141,5 +196,22 @@ func TestRunStatus(t *testing.T) {
 	err := runStatus()
 
 	assert.NoError(t, err)
+	mockDockerService.AssertExpectations(t)
+}
+
+func TestRunStatus_Error(t *testing.T) {
+	mockDockerService := new(MockDockerService)
+	mockDockerService.On("GetStatus").Return(errors.New("status error"))
+
+	originalDockerServiceCreator := dockerServiceCreator
+	dockerServiceCreator = func() (DockerService, error) {
+		return mockDockerService, nil
+	}
+	defer func() { dockerServiceCreator = originalDockerServiceCreator }()
+
+	err := runStatus()
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "status error")
 	mockDockerService.AssertExpectations(t)
 }
