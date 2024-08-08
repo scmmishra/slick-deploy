@@ -34,7 +34,7 @@ var statusCmd = &cobra.Command{
 	Short: "Get the status of your application",
 	Long:  "The status command shows the status of your application.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runStatus(cmd, args)
+		return runStatus()
 	},
 }
 
@@ -43,7 +43,7 @@ var logsCmd = &cobra.Command{
 	Short: "Tail and follow app logs",
 	Long:  "The logs command shows the logs output of your application. It is similar to running 'docker logs -f <container-id>'",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runLogs(cmd, args, defaultConfigLoader)
+		return runLogs(cmd, defaultConfigLoader)
 	},
 }
 
@@ -52,7 +52,7 @@ var caddyInspectCmd = &cobra.Command{
 	Short: "Inspect the current Caddy configuration",
 	Long:  "The caddy-inspect command retrieves and displays the current Caddy configuration.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runCaddyInspect(cmd, args, defaultConfigLoader)
+		return runCaddyInspect(cmd, defaultConfigLoader)
 	},
 }
 

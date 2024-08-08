@@ -88,7 +88,7 @@ func TestRunLogs(t *testing.T) {
 
 	cmd := createTestCommand()
 	cmd.Flags().String("tail", "all", "")
-	err := runLogs(cmd, []string{}, mockConfigLoader)
+	err := runLogs(cmd, mockConfigLoader)
 
 	assert.NoError(t, err)
 	mockDockerService.AssertExpectations(t)
@@ -110,7 +110,7 @@ func TestRunCaddyInspect(t *testing.T) {
 	os.Stdout = w
 
 	cmd := createTestCommand()
-	err := runCaddyInspect(cmd, []string{}, mockConfigLoader)
+	err := runCaddyInspect(cmd, mockConfigLoader)
 
 	w.Close()
 	os.Stdout = old
@@ -140,8 +140,7 @@ func TestRunStatus(t *testing.T) {
 		dockerServiceCreator = originalDockerServiceCreator
 	}()
 
-	cmd := createTestCommand()
-	err := runStatus(cmd, []string{})
+	err := runStatus()
 
 	assert.NoError(t, err)
 	mockDockerService.AssertExpectations(t)

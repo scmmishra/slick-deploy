@@ -45,7 +45,7 @@ func runDeploy(cmd *cobra.Command, deployer Deployer, configLoader ConfigLoader)
 	return deployer.Deploy(cfg)
 }
 
-func runStatus(cmd *cobra.Command, args []string) error {
+func runStatus() error {
 	dockerService, err := dockerServiceCreator()
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	return dockerService.GetStatus()
 }
 
-func runLogs(cmd *cobra.Command, args []string, configLoader ConfigLoader) error {
+func runLogs(cmd *cobra.Command, configLoader ConfigLoader) error {
 	cfg, err := configLoader(cmd)
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func runLogs(cmd *cobra.Command, args []string, configLoader ConfigLoader) error
 	return dockerService.StreamLogs(container.ID, tail)
 }
 
-func runCaddyInspect(cmd *cobra.Command, args []string, configLoader ConfigLoader) error {
+func runCaddyInspect(cmd *cobra.Command, configLoader ConfigLoader) error {
 	cfg, err := configLoader(cmd)
 	if err != nil {
 		return err
