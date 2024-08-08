@@ -12,9 +12,10 @@ import (
 type Deployer interface {
 	Deploy(cfg config.DeploymentConfig) error
 }
+
 type DefaultDeployer struct{}
 
-func (d DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
+func (_ DefaultDeployer) Deploy(cfg config.DeploymentConfig) error {
 	return deploy.Deploy(cfg)
 }
 
